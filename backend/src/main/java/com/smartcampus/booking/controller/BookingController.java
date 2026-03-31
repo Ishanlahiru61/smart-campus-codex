@@ -3,6 +3,7 @@ package com.smartcampus.booking.controller;
 import com.smartcampus.booking.dto.BookingRequestDTO;
 import com.smartcampus.booking.entity.Booking;
 import com.smartcampus.booking.service.BookingService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -16,10 +17,10 @@ public class BookingController {
 
     private final BookingService bookingService;
 
-    // CREATE BOOKING (201 CREATED)
+    // CREATE BOOKING (201 CREATED + VALIDATION)
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Booking create(@RequestBody BookingRequestDTO dto) {
+    public Booking create(@Valid @RequestBody BookingRequestDTO dto) {
         return bookingService.createBooking(dto, "user1"); // temp user
     }
 

@@ -17,16 +17,21 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public Booking createBooking(BookingRequestDTO dto, String userId) {
 
-        // 🔥 Conflict check
+        // Validate time logic
+        if (dto.startTime.isAfter(dto.endTime)) {
+            throw new IllegalArgumentException("Start time must be before end time");
+        }
+
+        // Conflict check
         var conflicts = bookingRepository
-            .findByResourceIdAndStartTimeLessThanEqualAndEndTimeGreaterThanEqual(
-                dto.resourceId,
-                dto.endTime,
-                dto.startTime
-            );
+                .findByResourceIdAndStartTimeLessThanEqualAndEndTimeGreaterThanEqual(
+                        dto.resourceId,
+                        dto.endTime,
+                        dto.startTime
+                );
 
         if (!conflicts.isEmpty()) {
-            throw new RuntimeException("Time slot already booked!");
+            throw new IllegalArgumentException("Time slot already booked");
         }
 
         Booking booking = Booking.builder()
