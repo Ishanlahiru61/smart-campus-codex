@@ -13,7 +13,11 @@ public interface BookingService {
 
     List<Booking> getAllBookings();
 
-    Booking updateStatus(String id, String status); 
+    Booking updateBooking(String id, BookingRequestDTO dto);
 
-    Booking cancelBooking(String id); 
+    Booking updateStatus(String id, String status);
+
+    Booking cancelBooking(String id);
+
+    void deleteBooking(String id);
 }

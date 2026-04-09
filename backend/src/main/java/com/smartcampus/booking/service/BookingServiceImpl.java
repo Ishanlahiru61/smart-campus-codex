@@ -17,12 +17,10 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public Booking createBooking(BookingRequestDTO dto, String userId) {
 
-        // Validate time logic
         if (dto.startTime.isAfter(dto.endTime)) {
             throw new IllegalArgumentException("Start time must be before end time");
         }
 
-        // Conflict check
         var conflicts = bookingRepository
                 .findByResourceIdAndStartTimeLessThanEqualAndEndTimeGreaterThanEqual(
                         dto.resourceId,
@@ -58,7 +56,38 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    public Booking updateBooking(String id, BookingRequestDTO dto) {
+
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Booking not found"));
+
+        if (dto.startTime.isAfter(dto.endTime)) {
+            throw new IllegalArgumentException("Start time must be before end time");
+        }
+
+        var conflicts = bookingRepository
+                .findByResourceIdAndStartTimeLessThanEqualAndEndTimeGreaterThanEqual(
+                        dto.resourceId,
+                        dto.endTime,
+                        dto.startTime
+                );
+
+        if (!conflicts.isEmpty()) {
+            throw new IllegalArgumentException("Time slot already booked");
+        }
+
+        booking.setResourceId(dto.resourceId);
+        booking.setStartTime(dto.startTime);
+        booking.setEndTime(dto.endTime);
+        booking.setPurpose(dto.purpose);
+        booking.setAttendees(dto.attendees);
+
+        return bookingRepository.save(booking);
+    }
+
+    @Override
     public Booking updateStatus(String id, String status) {
+
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Booking not found"));
 
@@ -68,10 +97,21 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public Booking cancelBooking(String id) {
+
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Booking not found"));
 
         booking.setStatus(BookingStatus.CANCELLED);
         return bookingRepository.save(booking);
+    }
+
+    @Override
+    public void deleteBooking(String id) {
+
+        if (!bookingRepository.existsById(id)) {
+            throw new RuntimeException("Booking not found");
+        }
+
+        bookingRepository.deleteById(id);
     }
 }

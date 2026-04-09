@@ -17,11 +17,11 @@ public class BookingController {
 
     private final BookingService bookingService;
 
-    // CREATE BOOKING (201 CREATED + VALIDATION)
+    // CREATE BOOKING
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Booking create(@Valid @RequestBody BookingRequestDTO dto) {
-        return bookingService.createBooking(dto, "user1"); // temp user
+        return bookingService.createBooking(dto, "user1");
     }
 
     // GET USER BOOKINGS
@@ -31,17 +31,26 @@ public class BookingController {
         return bookingService.getUserBookings("user1");
     }
 
-    // GET ALL BOOKINGS (ADMIN)
+    // GET ALL BOOKINGS
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public List<Booking> allBookings() {
         return bookingService.getAllBookings();
     }
 
-    // APPROVE / REJECT BOOKING
+    // UPDATE BOOKING DETAILS
+    @PutMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public Booking updateBooking(@PathVariable String id,
+                                 @Valid @RequestBody BookingRequestDTO dto) {
+        return bookingService.updateBooking(id, dto);
+    }
+
+    // UPDATE STATUS
     @PutMapping("/{id}/status")
     @ResponseStatus(HttpStatus.OK)
-    public Booking updateStatus(@PathVariable String id, @RequestParam String status) {
+    public Booking updateStatus(@PathVariable String id,
+                               @RequestParam String status) {
         return bookingService.updateStatus(id, status);
     }
 
@@ -50,5 +59,12 @@ public class BookingController {
     @ResponseStatus(HttpStatus.OK)
     public Booking cancel(@PathVariable String id) {
         return bookingService.cancelBooking(id);
+    }
+
+    // DELETE BOOKING
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable String id) {
+        bookingService.deleteBooking(id);
     }
 }
