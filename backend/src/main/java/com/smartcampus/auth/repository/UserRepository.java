@@ -10,5 +10,5 @@ import java.util.Optional;
 public interface UserRepository extends MongoRepository<User, String> {
     Optional<User> findByEmail(String email);
     Optional<User> findByResetToken(String resetToken);
-    long countByRole(String role); 
+    long countByRolesContaining(String role);
 }

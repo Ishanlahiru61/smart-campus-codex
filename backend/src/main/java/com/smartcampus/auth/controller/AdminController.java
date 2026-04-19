@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Set;
+
 @RestController
 @RequestMapping("/admin")
 @RequiredArgsConstructor
@@ -33,8 +35,7 @@ public class AdminController {
 
         // 2. Enforce max 4 admins rule
         if ("ADMIN".equalsIgnoreCase(request.role())) {
-            // Note: Assuming your repository method is countByRole since your User entity uses 'String role'
-            long adminCount = userRepository.countByRole("ADMIN"); 
+            long adminCount = userRepository.countByRolesContaining("ADMIN"); 
             if (adminCount >= 4) {
                 return ResponseEntity.badRequest().body("Maximum of 4 admins allowed.");
             }
@@ -45,7 +46,8 @@ public class AdminController {
                 .username(request.username())
                 .email(encryptedEmail) 
                 .password(passwordEncoder.encode(request.password()))
-                .role(request.role().toUpperCase())
+                .roles(Set.of(request.role().toUpperCase()))
+                .enabled(true)
                 .build();
 
         userRepository.save(newUser);

@@ -5,6 +5,8 @@ node_modules/
 build/
 dist/
 coverage/
+1.md
+full_project_code.md
 .env
 .env.local
 .env.development.local
