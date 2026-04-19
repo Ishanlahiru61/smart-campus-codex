@@ -3,6 +3,7 @@ package com.smartcampus.auth.controller;
 import com.smartcampus.auth.dto.CreateUserRequest;
 import com.smartcampus.auth.entity.User;
 import com.smartcampus.auth.repository.UserRepository;
+import com.smartcampus.auth.util.EncryptionUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -18,12 +19,15 @@ public class AdminController {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EncryptionUtil encryptionUtil;
 
     @PostMapping("/create-user")
     public ResponseEntity<?> createUser(@RequestBody CreateUserRequest request) {
         
-        // 1. Check if email already exists (using plain text email)
-        if (userRepository.findByEmail(request.email()).isPresent()) {
+        String encryptedEmail = encryptionUtil.encrypt(request.email());
+
+        // 1. Check if email already exists (using encrypted email)
+        if (userRepository.findByEmail(encryptedEmail).isPresent()) {
             return ResponseEntity.badRequest().body("Email already exists.");
         }
 
@@ -38,7 +42,8 @@ public class AdminController {
 
         // 3. Build and save the user
         User newUser = User.builder()
-                .email(request.email()) 
+                .username(request.username())
+                .email(encryptedEmail) 
                 .password(passwordEncoder.encode(request.password()))
                 .role(request.role().toUpperCase())
                 .build();
