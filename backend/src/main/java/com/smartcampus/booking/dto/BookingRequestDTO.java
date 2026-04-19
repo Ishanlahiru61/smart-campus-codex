@@ -9,17 +9,21 @@ import java.time.LocalDateTime;
 public class BookingRequestDTO {
 
     @NotBlank(message = "Resource ID is required")
-    public String resourceId;
+    @Size(max = 50, message = "Resource ID cannot exceed 50 characters")
+    private String resourceId;
 
     @NotNull(message = "Start time is required")
-    public LocalDateTime startTime;
+    @Future(message = "Start time must be in the future")
+    private LocalDateTime startTime;
 
     @NotNull(message = "End time is required")
-    public LocalDateTime endTime;
+    private LocalDateTime endTime;
 
     @NotBlank(message = "Purpose is required")
-    public String purpose;
+    @Size(min = 5, max = 255, message = "Purpose must be between 5 and 255 characters")
+    private String purpose;
 
     @Min(value = 1, message = "Attendees must be at least 1")
-    public int attendees;
+    @Max(value = 1000, message = "Attendees cannot exceed 1000")
+    private int attendees;
 }
