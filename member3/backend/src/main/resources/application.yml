@@ -1,0 +1,39 @@
+spring:
+  application:
+    name: smart-campus-incidents-api
+  
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb+srv://YK:y2k1@cluster0.oyvvd.mongodb.net/smmartCampDB?retryWrites=true&w=majority&appName=Cluster0}
+  
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    default-property-inclusion: non_null
+  
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+server:
+  port: ${API_PORT:8081}
+  servlet:
+    context-path: /api
+
+logging:
+  level:
+    root: INFO
+    com.smartcampus: DEBUG
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:smart-campus-incidents-secret-key-change-in-production}
+  expiration: ${JWT_EXPIRATION:86400000}
+
+# File Upload Configuration
+app:
+  file:
+    upload-dir: ${UPLOAD_DIR:./uploads}
+    max-file-size: 5242880
+    allowed-types: image/jpeg,image/png,image/jpg,image/gif,image/webp
