@@ -1,0 +1,49 @@
+# Maven
+target/
+*.jar
+*.war
+*.rar
+*.ear
+.flattened-pom.xml
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+*.log
+
+# Gradle
+build/
+.gradle/
+
+# Maven Wrapper
+.mvn/wrapper/maven-wrapper.jar
+.mvn/wrapper/maven-wrapper.properties
+
+# Spring Boot
+.m2/
+
+# JUnit
+*.class
+
+# Package Files
+*.zip
+*.tar.gz
+*.rar
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local environment
+.env
+.env.local
+application-local.properties
+
+# Node (if frontend is in same repo)
+node_modules/
+npm-debug.log
+yarn-error.log
