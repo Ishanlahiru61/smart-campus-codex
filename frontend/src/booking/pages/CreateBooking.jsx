@@ -44,6 +44,34 @@ const MOCK_RESOURCES = [
   },
 ];
 
+const TIME_OPTIONS = [
+  "08:00",
+  "08:30",
+  "09:00",
+  "09:30",
+  "10:00",
+  "10:30",
+  "11:00",
+  "11:30",
+  "12:00",
+  "12:30",
+  "13:00",
+  "13:30",
+  "14:00",
+  "14:30",
+  "15:00",
+  "15:30",
+  "16:00",
+  "16:30",
+  "17:00",
+  "17:30",
+  "18:00",
+  "18:30",
+  "19:00",
+  "19:30",
+  "20:00",
+];
+
 export default function CreateBooking() {
   const [formData, setFormData] = useState({
     resourceId: "",
@@ -75,6 +103,43 @@ export default function CreateBooking() {
     [formData.bookingDate, formData.endTimeOnly]
   );
 
+  const availableEndTimeOptions = useMemo(() => {
+    if (!formData.startTimeOnly) return TIME_OPTIONS;
+    return TIME_OPTIONS.filter((time) => time > formData.startTimeOnly);
+  }, [formData.startTimeOnly]);
+
+  const validationErrors = useMemo(() => {
+    const errors = {};
+
+    const attendeeCount = Number(formData.attendees);
+
+    if (formData.attendees !== "") {
+      if (!Number.isFinite(attendeeCount) || attendeeCount < 1) {
+        errors.attendees = "Expected attendees must be at least 1.";
+      } else if (
+        selectedResource &&
+        attendeeCount > selectedResource.capacity
+      ) {
+        errors.attendees = `Expected attendees cannot exceed capacity (${selectedResource.capacity}).`;
+      }
+    }
+
+    if (formData.startTimeOnly && formData.endTimeOnly) {
+      if (formData.startTimeOnly >= formData.endTimeOnly) {
+        errors.timeRange = "Start time must be before end time.";
+      }
+    }
+
+    return errors;
+  }, [
+    formData.attendees,
+    formData.startTimeOnly,
+    formData.endTimeOnly,
+    selectedResource,
+  ]);
+
+  const hasValidationErrors = Object.keys(validationErrors).length > 0;
+
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -82,6 +147,9 @@ export default function CreateBooking() {
       ...prev,
       [name]: value,
     }));
+
+    setMessage("");
+    setError("");
   };
 
   const resetForm = () => {
@@ -106,18 +174,34 @@ export default function CreateBooking() {
         throw new Error("Please select a resource.");
       }
 
-      if (!combinedStart || !combinedEnd) {
-        throw new Error("Please select booking date, start time, and end time.");
+      if (!formData.bookingDate) {
+        throw new Error("Please select a booking date.");
       }
 
-      if (combinedStart >= combinedEnd) {
-        throw new Error("End time must be after start time.");
+      if (!formData.startTimeOnly || !formData.endTimeOnly) {
+        throw new Error("Please select both start time and end time.");
+      }
+
+      if (validationErrors.timeRange) {
+        throw new Error(validationErrors.timeRange);
       }
 
       const attendeeCount = Number(formData.attendees);
 
       if (!attendeeCount || attendeeCount < 1) {
-        throw new Error("Attendees must be at least 1.");
+        throw new Error("Expected attendees must be at least 1.");
+      }
+
+      if (validationErrors.attendees) {
+        throw new Error(validationErrors.attendees);
+      }
+
+      if (!formData.purpose.trim()) {
+        throw new Error("Purpose is required.");
+      }
+
+      if (!combinedStart || !combinedEnd) {
+        throw new Error("Please select booking date, start time, and end time.");
       }
 
       const payload = {
@@ -134,20 +218,34 @@ export default function CreateBooking() {
       setMessage("Booking created successfully.");
       resetForm();
     } catch (err) {
-      const backendError =
-        err?.response?.data?.message ||
-        err?.response?.data ||
-        err?.message ||
-        "Failed to create booking.";
+      console.log("Create booking error:", err);
+      console.log("Backend response:", err?.response?.data);
 
-      setError(String(backendError));
+      const data = err?.response?.data;
+      let backendError = "Failed to create booking.";
+
+      if (typeof data === "string") {
+        backendError = data;
+      } else if (data?.message) {
+        backendError = data.message;
+      } else if (data?.error) {
+        backendError = data.error;
+      } else if (data?.errors) {
+        backendError = JSON.stringify(data.errors);
+      } else if (data) {
+        backendError = JSON.stringify(data);
+      } else if (err?.message) {
+        backendError = err.message;
+      }
+
+      setError(backendError);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <section className="booking-page">
+    <section className="booking-page booking-page--create-booking">
       <div className="booking-container booking-container--wide">
         <div className="booking-page-header">
           <span className="booking-chip">New Request</span>
@@ -158,20 +256,21 @@ export default function CreateBooking() {
           </p>
         </div>
 
-        <div className="booking-layout">
-          <div className="booking-panel">
+        <div className="booking-layout booking-layout--refined">
+          <div className="booking-panel booking-panel--form">
             {message && (
               <div className="booking-alert booking-alert--success">
                 {message}
               </div>
             )}
+
             {error && (
               <div className="booking-alert booking-alert--error">{error}</div>
             )}
 
-            <form onSubmit={handleSubmit} className="booking-form">
-              <div className="booking-form-grid">
-                <div className="booking-field">
+            <form onSubmit={handleSubmit} className="booking-form" noValidate>
+              <div className="booking-form-grid booking-form-grid--create">
+                <div className="booking-field booking-field--full">
                   <label className="booking-label">Resource</label>
                   <select
                     name="resourceId"
@@ -197,10 +296,16 @@ export default function CreateBooking() {
                     value={formData.attendees}
                     onChange={handleChange}
                     min="1"
+                    max={selectedResource?.capacity || undefined}
                     placeholder="e.g. 20"
                     required
                     className="booking-input"
                   />
+                  {validationErrors.attendees && (
+                    <p className="booking-field-error">
+                      {validationErrors.attendees}
+                    </p>
+                  )}
                 </div>
 
                 <div className="booking-field">
@@ -217,38 +322,70 @@ export default function CreateBooking() {
 
                 <div className="booking-field">
                   <label className="booking-label">Start Time</label>
-                  <input
-                    type="time"
+                  <select
                     name="startTimeOnly"
                     value={formData.startTimeOnly}
                     onChange={handleChange}
                     required
                     className="booking-input"
-                  />
+                  >
+                    <option value="">Select start time</option>
+                    {TIME_OPTIONS.map((time) => (
+                      <option key={time} value={time}>
+                        {time}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="booking-field">
                   <label className="booking-label">End Time</label>
-                  <input
-                    type="time"
+                  <select
                     name="endTimeOnly"
                     value={formData.endTimeOnly}
                     onChange={handleChange}
                     required
                     className="booking-input"
+                    disabled={!formData.startTimeOnly}
+                  >
+                    <option value="">Select end time</option>
+                    {availableEndTimeOptions.map((time) => (
+                      <option key={time} value={time}>
+                        {time}
+                      </option>
+                    ))}
+                  </select>
+                  {validationErrors.timeRange && (
+                    <p className="booking-field-error">
+                      {validationErrors.timeRange}
+                    </p>
+                  )}
+                </div>
+
+                <div className="booking-field booking-field--full">
+                  <label className="booking-label">Purpose</label>
+                  <textarea
+                    name="purpose"
+                    value={formData.purpose}
+                    onChange={handleChange}
+                    placeholder="Enter the purpose of the booking"
+                    required
+                    className="booking-textarea"
                   />
                 </div>
               </div>
 
               {selectedResource && (
-                <div className="booking-field">
-                  <div className="booking-resource-card">
-                    <h4 className="booking-resource-card__title">
+                <div className="booking-resource-card booking-resource-card--inline">
+                  <div className="booking-resource-card__icon">🏫</div>
+
+                  <div className="booking-resource-card__content">
+                    <span className="booking-resource-card__eyebrow">
                       Selected Resource
+                    </span>
+                    <h4 className="booking-resource-card__title">
+                      {selectedResource.name}
                     </h4>
-                    <p>
-                      <strong>{selectedResource.name}</strong>
-                    </p>
                     <p>
                       {selectedResource.type} • {selectedResource.location}
                     </p>
@@ -257,21 +394,9 @@ export default function CreateBooking() {
                 </div>
               )}
 
-              <div className="booking-field">
-                <label className="booking-label">Purpose</label>
-                <textarea
-                  name="purpose"
-                  value={formData.purpose}
-                  onChange={handleChange}
-                  placeholder="Enter the purpose of the booking"
-                  required
-                  className="booking-textarea"
-                />
-              </div>
-
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || hasValidationErrors}
                 className="booking-button booking-button--primary booking-button--full"
               >
                 {loading ? "Submitting..." : "Create Booking"}
@@ -279,7 +404,7 @@ export default function CreateBooking() {
             </form>
           </div>
 
-          <aside className="booking-panel booking-panel--sidebar">
+          <aside className="booking-panel booking-panel--sidebar booking-panel--preview">
             <h3 className="booking-section-title">Request Preview</h3>
 
             <div className="booking-preview">
@@ -291,6 +416,11 @@ export default function CreateBooking() {
               <div className="booking-preview__row">
                 <span>Type</span>
                 <strong>{selectedResource?.type || "-"}</strong>
+              </div>
+
+              <div className="booking-preview__row">
+                <span>Location</span>
+                <strong>{selectedResource?.location || "-"}</strong>
               </div>
 
               <div className="booking-preview__row">
