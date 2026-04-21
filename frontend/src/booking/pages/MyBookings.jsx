@@ -3,7 +3,6 @@ import bookingApi from "../services/bookingApi";
 import {
   combineDateAndTime,
   DEMO_USER_ID,
-  formatDateTime,
   getStatusClassName,
 } from "../utils/bookingFormat";
 
@@ -68,6 +67,30 @@ const toTimeInputValue = (dateTimeString) => {
   return date.toTimeString().slice(0, 5);
 };
 
+const formatDisplayDate = (dateTimeString) => {
+  if (!dateTimeString) return "-";
+  const date = new Date(dateTimeString);
+  if (Number.isNaN(date.getTime())) return "-";
+
+  return date.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
+
+const formatDisplayTime = (dateTimeString) => {
+  if (!dateTimeString) return "-";
+  const date = new Date(dateTimeString);
+  if (Number.isNaN(date.getTime())) return "-";
+
+  return date.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+};
+
 export default function MyBookings() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -77,6 +100,10 @@ export default function MyBookings() {
   });
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("ALL");
+  const [dateFilter, setDateFilter] = useState("");
 
   const [isRescheduleOpen, setIsRescheduleOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
@@ -124,9 +151,34 @@ export default function MyBookings() {
         resourceName: resource?.name || booking.resourceId,
         resourceType: resource?.type || "Resource",
         resourceLocation: resource?.location || "-",
+        displayDate: formatDisplayDate(booking.startTime),
+        displayStartTime: formatDisplayTime(booking.startTime),
+        displayEndTime: formatDisplayTime(booking.endTime),
+        bookingDateValue: toDateInputValue(booking.startTime),
       };
     });
   }, [bookings]);
+
+  const filteredBookings = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+
+    return enrichedBookings.filter((booking) => {
+      const matchesSearch =
+        !normalizedSearch ||
+        booking.purpose?.toLowerCase().includes(normalizedSearch) ||
+        booking.resourceName?.toLowerCase().includes(normalizedSearch) ||
+        booking.resourceType?.toLowerCase().includes(normalizedSearch) ||
+        booking.resourceLocation?.toLowerCase().includes(normalizedSearch);
+
+      const matchesStatus =
+        statusFilter === "ALL" || booking.status === statusFilter;
+
+      const matchesDate =
+        !dateFilter || booking.bookingDateValue === dateFilter;
+
+      return matchesSearch && matchesStatus && matchesDate;
+    });
+  }, [enrichedBookings, searchTerm, statusFilter, dateFilter]);
 
   const handleCancel = async (booking) => {
     if (!canModifyBooking(booking.status)) return;
@@ -258,16 +310,21 @@ export default function MyBookings() {
     }
   };
 
+  const clearFilters = () => {
+    setSearchTerm("");
+    setStatusFilter("ALL");
+    setDateFilter("");
+  };
+
   return (
-    <section className="booking-page">
+    <section className="booking-page booking-page--my-bookings">
       <div className="booking-container booking-container--wide">
         <div className="booking-page-header booking-page-header--row">
           <div>
-            <span className="booking-chip">Personal View</span>
+            <span className="booking-chip">Welcome Back</span>
             <h1 className="booking-page-title">My Bookings</h1>
             <p className="booking-page-subtitle">
-              View your reservations, reschedule when needed, and manage
-              cancellations cleanly.
+              Search, filter, and manage your reservations with quick actions.
             </p>
           </div>
 
@@ -279,6 +336,59 @@ export default function MyBookings() {
           </button>
         </div>
 
+        <div className="booking-filters-panel">
+          <div className="booking-toolbar booking-toolbar--wide">
+            <div className="booking-toolbar__item booking-toolbar__item--search">
+              <label className="booking-label">Search</label>
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search by purpose, resource, or type"
+                className="booking-input"
+              />
+            </div>
+
+            <div className="booking-toolbar__item">
+              <label className="booking-label">Status</label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="booking-input"
+              >
+                <option value="ALL">All</option>
+                <option value="PENDING">Pending</option>
+                <option value="APPROVED">Approved</option>
+                <option value="REJECTED">Rejected</option>
+                <option value="CANCELLED">Cancelled</option>
+              </select>
+            </div>
+
+            <div className="booking-toolbar__item">
+              <label className="booking-label">Booking Date</label>
+              <input
+                type="date"
+                value={dateFilter}
+                onChange={(e) => setDateFilter(e.target.value)}
+                className="booking-input"
+              />
+            </div>
+
+            <div className="booking-toolbar__item booking-toolbar__item--action">
+              <label className="booking-label booking-label--hidden">
+                Actions
+              </label>
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="booking-button booking-button--secondary booking-filters-panel__clear"
+              >
+                Clear
+              </button>
+            </div>
+          </div>
+        </div>
+
         {message && (
           <div className="booking-alert booking-alert--success">{message}</div>
         )}
@@ -286,14 +396,14 @@ export default function MyBookings() {
           <div className="booking-alert booking-alert--error">{error}</div>
         )}
 
-        {!loading && enrichedBookings.length === 0 ? (
+        {!loading && filteredBookings.length === 0 ? (
           <div className="booking-empty-state">
-            <h3>No bookings yet</h3>
-            <p>Your bookings will appear here once you create one.</p>
+            <h3>No matching bookings</h3>
+            <p>Try changing your search or filters.</p>
           </div>
         ) : (
           <div className="booking-card-grid booking-card-grid--fixed">
-            {enrichedBookings.map((booking) => {
+            {filteredBookings.map((booking) => {
               const allowModify = canModifyBooking(booking.status);
               const allowDelete = canDeleteBooking(booking.status);
 
@@ -341,13 +451,8 @@ export default function MyBookings() {
 
                   <div className="booking-card__info">
                     <div>
-                      <span className="booking-card__label">Start</span>
-                      <strong>{formatDateTime(booking.startTime)}</strong>
-                    </div>
-
-                    <div>
-                      <span className="booking-card__label">End</span>
-                      <strong>{formatDateTime(booking.endTime)}</strong>
+                      <span className="booking-card__label">Date</span>
+                      <strong>{booking.displayDate}</strong>
                     </div>
 
                     <div>
@@ -356,16 +461,28 @@ export default function MyBookings() {
                     </div>
 
                     <div>
+                      <span className="booking-card__label">Start Time</span>
+                      <strong>{booking.displayStartTime}</strong>
+                    </div>
+
+                    <div>
+                      <span className="booking-card__label">End Time</span>
+                      <strong>{booking.displayEndTime}</strong>
+                    </div>
+
+                    <div className="booking-card__full">
                       <span className="booking-card__label">Current Status</span>
                       <strong>{booking.status}</strong>
                     </div>
 
-                    <div className="booking-card__full">
-                      <span className="booking-card__label">
-                        Rejection Reason
-                      </span>
-                      <strong>{booking.rejectionReason || "-"}</strong>
-                    </div>
+                    {booking.status === "REJECTED" && (
+                      <div className="booking-card__full">
+                        <span className="booking-card__label">
+                          Rejection Reason
+                        </span>
+                        <strong>{booking.rejectionReason || "-"}</strong>
+                      </div>
+                    )}
                   </div>
 
                   <div className="booking-card__actions booking-card__actions--inline">
