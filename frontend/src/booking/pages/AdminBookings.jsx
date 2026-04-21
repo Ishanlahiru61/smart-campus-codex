@@ -5,11 +5,58 @@ import {
   getStatusClassName,
 } from "../utils/bookingFormat";
 
+const MOCK_RESOURCES = [
+  {
+    id: "res001",
+    name: "Lecture Hall A",
+    type: "Lecture Hall",
+    location: "Block A",
+    capacity: 120,
+  },
+  {
+    id: "res002",
+    name: "Computer Lab 1",
+    type: "Computer Lab",
+    location: "Block B - Floor 2",
+    capacity: 40,
+  },
+  {
+    id: "res003",
+    name: "Main Auditorium",
+    type: "Auditorium",
+    location: "Main Building",
+    capacity: 300,
+  },
+  {
+    id: "res004",
+    name: "Biology Lab",
+    type: "Laboratory",
+    location: "Science Wing",
+    capacity: 35,
+  },
+  {
+    id: "res005",
+    name: "Meeting Room 2",
+    type: "Meeting Room",
+    location: "Admin Block",
+    capacity: 12,
+  },
+];
+
+const getResourceById = (resourceId) =>
+  MOCK_RESOURCES.find((resource) => resource.id === resourceId);
+
+const canApproveOrReject = (status) => status === "PENDING";
+const canDelete = (status) => status === "CANCELLED" || status === "REJECTED";
+
 export default function AdminBookings() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("ALL");
-  const [actionLoadingId, setActionLoadingId] = useState(null);
+  const [actionLoading, setActionLoading] = useState({
+    id: null,
+    type: "",
+  });
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
@@ -37,13 +84,26 @@ export default function AdminBookings() {
   }, []);
 
   const filteredBookings = useMemo(() => {
-    if (statusFilter === "ALL") return bookings;
-    return bookings.filter((booking) => booking.status === statusFilter);
+    const enriched = bookings.map((booking) => {
+      const resource = getResourceById(booking.resourceId);
+
+      return {
+        ...booking,
+        resourceName: resource?.name || booking.resourceId,
+        resourceType: resource?.type || "Resource",
+        resourceLocation: resource?.location || "-",
+      };
+    });
+
+    if (statusFilter === "ALL") return enriched;
+    return enriched.filter((booking) => booking.status === statusFilter);
   }, [bookings, statusFilter]);
 
-  const handleApprove = async (bookingId) => {
+  const handleApprove = async (bookingId, status) => {
+    if (!canApproveOrReject(status)) return;
+
     try {
-      setActionLoadingId(bookingId);
+      setActionLoading({ id: bookingId, type: "approve" });
       setMessage("");
       setError("");
 
@@ -57,16 +117,18 @@ export default function AdminBookings() {
           "Failed to approve booking."
       );
     } finally {
-      setActionLoadingId(null);
+      setActionLoading({ id: null, type: "" });
     }
   };
 
-  const handleReject = async (bookingId) => {
+  const handleReject = async (bookingId, status) => {
+    if (!canApproveOrReject(status)) return;
+
     const reason = window.prompt("Enter rejection reason:");
-    if (!reason) return;
+    if (!reason?.trim()) return;
 
     try {
-      setActionLoadingId(bookingId);
+      setActionLoading({ id: bookingId, type: "reject" });
       setMessage("");
       setError("");
 
@@ -80,18 +142,20 @@ export default function AdminBookings() {
           "Failed to reject booking."
       );
     } finally {
-      setActionLoadingId(null);
+      setActionLoading({ id: null, type: "" });
     }
   };
 
-  const handleDelete = async (bookingId) => {
+  const handleDelete = async (bookingId, status) => {
+    if (!canDelete(status)) return;
+
     const confirmed = window.confirm(
       "Are you sure you want to delete this booking?"
     );
     if (!confirmed) return;
 
     try {
-      setActionLoadingId(bookingId);
+      setActionLoading({ id: bookingId, type: "delete" });
       setMessage("");
       setError("");
 
@@ -105,7 +169,7 @@ export default function AdminBookings() {
           "Failed to delete booking."
       );
     } finally {
-      setActionLoadingId(null);
+      setActionLoading({ id: null, type: "" });
     }
   };
 
@@ -126,7 +190,7 @@ export default function AdminBookings() {
             onClick={fetchAllBookings}
             className="booking-button booking-button--secondary"
           >
-            {loading ? "Refreshing..." : "Refresh"}
+            ↻ {loading ? "Refreshing..." : "Refresh"}
           </button>
         </div>
 
@@ -147,82 +211,125 @@ export default function AdminBookings() {
           </div>
         </div>
 
-        {message && <div className="booking-alert booking-alert--success">{message}</div>}
-        {error && <div className="booking-alert booking-alert--error">{error}</div>}
+        {message && (
+          <div className="booking-alert booking-alert--success">{message}</div>
+        )}
+        {error && (
+          <div className="booking-alert booking-alert--error">{error}</div>
+        )}
 
         <div className="booking-card-grid">
-          {filteredBookings.map((booking) => (
-            <article className="booking-card" key={booking.id}>
-              <div className="booking-card__header">
-                <div>
-                  <h3 className="booking-card__title">{booking.purpose}</h3>
-                  <p className="booking-card__meta">Booking ID: {booking.id}</p>
+          {filteredBookings.map((booking) => {
+            const approveRejectAllowed = canApproveOrReject(booking.status);
+            const deleteAllowed = canDelete(booking.status);
+
+            const isApproving =
+              actionLoading.id === booking.id && actionLoading.type === "approve";
+            const isRejecting =
+              actionLoading.id === booking.id && actionLoading.type === "reject";
+            const isDeleting =
+              actionLoading.id === booking.id && actionLoading.type === "delete";
+
+            return (
+              <article
+                className="booking-card booking-card--admin"
+                key={booking.id}
+              >
+                <div className="booking-card__header">
+                  <div>
+                    <h3 className="booking-card__title">{booking.purpose}</h3>
+                    <p className="booking-card__submeta">
+                      {booking.resourceType} • {booking.resourceLocation}
+                    </p>
+                  </div>
+
+                  <span className={getStatusClassName(booking.status)}>
+                    {booking.status}
+                  </span>
                 </div>
 
-                <span className={getStatusClassName(booking.status)}>
-                  {booking.status}
-                </span>
-              </div>
-
-              <div className="booking-card__info">
-                <div>
-                  <span className="booking-card__label">Resource</span>
-                  <strong>{booking.resourceId}</strong>
+                <div className="booking-card__resource-banner">
+                  <span className="booking-card__resource-icon">🏫</span>
+                  <div>
+                    <span className="booking-card__resource-label">
+                      Resource
+                    </span>
+                    <strong className="booking-card__resource-name">
+                      {booking.resourceName}
+                    </strong>
+                  </div>
                 </div>
 
-                <div>
-                  <span className="booking-card__label">User</span>
-                  <strong>{booking.userId}</strong>
+                <div className="booking-card__info">
+                  <div>
+                    <span className="booking-card__label">User</span>
+                    <strong>{booking.userId}</strong>
+                  </div>
+
+                  <div>
+                    <span className="booking-card__label">Attendees</span>
+                    <strong>{booking.attendees}</strong>
+                  </div>
+
+                  <div>
+                    <span className="booking-card__label">Start</span>
+                    <strong>{formatDateTime(booking.startTime)}</strong>
+                  </div>
+
+                  <div>
+                    <span className="booking-card__label">End</span>
+                    <strong>{formatDateTime(booking.endTime)}</strong>
+                  </div>
+
+                  <div className="booking-card__full">
+                    <span className="booking-card__label">Reason</span>
+                    <strong>{booking.rejectionReason || "-"}</strong>
+                  </div>
                 </div>
 
-                <div>
-                  <span className="booking-card__label">Start</span>
-                  <strong>{formatDateTime(booking.startTime)}</strong>
+                <div className="booking-card__actions booking-card__actions--row">
+                  <button
+                    onClick={() => handleApprove(booking.id, booking.status)}
+                    disabled={!approveRejectAllowed || isApproving}
+                    className="booking-button booking-button--success"
+                    title={
+                      approveRejectAllowed
+                        ? "Approve booking"
+                        : "Approve is only allowed for PENDING bookings"
+                    }
+                  >
+                    {isApproving ? "Working..." : "✓ Approve"}
+                  </button>
+
+                  <button
+                    onClick={() => handleReject(booking.id, booking.status)}
+                    disabled={!approveRejectAllowed || isRejecting}
+                    className="booking-button booking-button--danger"
+                    title={
+                      approveRejectAllowed
+                        ? "Reject booking"
+                        : "Reject is only allowed for PENDING bookings"
+                    }
+                  >
+                    {isRejecting ? "Working..." : "⚠ Reject"}
+                  </button>
+
+                  <button
+                    onClick={() => handleDelete(booking.id, booking.status)}
+                    disabled={!deleteAllowed || isDeleting}
+                    className="booking-button booking-button--dark"
+                    title={
+                      deleteAllowed
+                        ? "Delete booking"
+                        : "Delete is only allowed for REJECTED or CANCELLED bookings"
+                    }
+                  >
+                    {isDeleting ? "Working..." : "🗑 Delete"}
+                  </button>
                 </div>
-
-                <div>
-                  <span className="booking-card__label">End</span>
-                  <strong>{formatDateTime(booking.endTime)}</strong>
-                </div>
-
-                <div>
-                  <span className="booking-card__label">Attendees</span>
-                  <strong>{booking.attendees}</strong>
-                </div>
-
-                <div>
-                  <span className="booking-card__label">Reason</span>
-                  <strong>{booking.rejectionReason || "-"}</strong>
-                </div>
-              </div>
-
-              <div className="booking-card__actions booking-card__actions--row">
-                <button
-                  onClick={() => handleApprove(booking.id)}
-                  disabled={actionLoadingId === booking.id}
-                  className="booking-button booking-button--success"
-                >
-                  {actionLoadingId === booking.id ? "Working..." : "Approve"}
-                </button>
-
-                <button
-                  onClick={() => handleReject(booking.id)}
-                  disabled={actionLoadingId === booking.id}
-                  className="booking-button booking-button--danger"
-                >
-                  {actionLoadingId === booking.id ? "Working..." : "Reject"}
-                </button>
-
-                <button
-                  onClick={() => handleDelete(booking.id)}
-                  disabled={actionLoadingId === booking.id}
-                  className="booking-button booking-button--dark"
-                >
-                  {actionLoadingId === booking.id ? "Working..." : "Delete"}
-                </button>
-              </div>
-            </article>
-          ))}
+              </article>
+            );
+          })}
         </div>
       </div>
     </section>

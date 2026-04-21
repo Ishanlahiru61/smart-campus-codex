@@ -16,7 +16,7 @@ export default function Navbar() {
 
           <div className="booking-navbar__brand-text">
             <span className="booking-navbar__title">Smart Campus</span>
-            <span className="booking-navbar__subtitle">Booking Module</span>
+            <span className="booking-navbar__subtitle"></span>
           </div>
         </NavLink>
 
