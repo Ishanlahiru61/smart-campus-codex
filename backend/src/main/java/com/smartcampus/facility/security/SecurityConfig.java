@@ -1,4 +1,4 @@
-package com.smartcampus.facilities.config;
+package com.smartcampus.facility.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

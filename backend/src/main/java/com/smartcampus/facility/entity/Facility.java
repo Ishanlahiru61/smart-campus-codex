@@ -1,4 +1,4 @@
-package com.smartcampus.facilities.model;
+package com.smartcampus.facility.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

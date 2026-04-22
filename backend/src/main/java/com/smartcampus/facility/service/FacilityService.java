@@ -1,8 +1,8 @@
-package com.smartcampus.facilities.service;
+package com.smartcampus.facility.service;
 
-import com.smartcampus.facilities.dto.FacilityRequestDTO;
-import com.smartcampus.facilities.model.Facility;
-import com.smartcampus.facilities.repository.FacilityRepository;
+import com.smartcampus.facility.dto.FacilityRequestDTO;
+import com.smartcampus.facility.entity.Facility;
+import com.smartcampus.facility.repository.FacilityRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

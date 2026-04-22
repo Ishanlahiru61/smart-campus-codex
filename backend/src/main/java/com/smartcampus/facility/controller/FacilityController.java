@@ -1,8 +1,8 @@
-package com.smartcampus.facilities.controller;
+package com.smartcampus.facility.controller;
 
-import com.smartcampus.facilities.dto.FacilityRequestDTO;
-import com.smartcampus.facilities.model.Facility;
-import com.smartcampus.facilities.service.FacilityService;
+import com.smartcampus.facility.dto.FacilityRequestDTO;
+import com.smartcampus.facility.entity.Facility;
+import com.smartcampus.facility.service.FacilityService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

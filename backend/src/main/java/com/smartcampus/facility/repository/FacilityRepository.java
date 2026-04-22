@@ -1,6 +1,6 @@
-package com.smartcampus.facilities.repository;
+package com.smartcampus.facility.repository;
 
-import com.smartcampus.facilities.model.Facility;
+import com.smartcampus.facility.entity.Facility;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
