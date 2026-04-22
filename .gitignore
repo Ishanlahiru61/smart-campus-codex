@@ -2,14 +2,16 @@
 node_modules/
 .pnp
 .pnp.js
-/build
-/dist
+build/
+dist/
+coverage/
+1.md
+full_project_code.md
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
-/coverage
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -33,10 +35,8 @@ tempCodeRunnerFile.xml
 .DS_Store
 Thumbs.db
 
-# === GitHub Actions / CI ===
-.github/workflows/*.yml  # keep workflow files in repo, ignore any temp if created
-
-# Optional: Eclipse / IntelliJ metadata
+# === Optional: Eclipse / IntelliJ / VS Code metadata ===
 .settings/
 *.launch
 .vscode/
+target/
