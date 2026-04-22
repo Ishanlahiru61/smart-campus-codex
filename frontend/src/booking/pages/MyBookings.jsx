@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import bookingApi from "../services/bookingApi";
 import {
   combineDateAndTime,
@@ -9,38 +10,45 @@ import {
 const MOCK_RESOURCES = [
   {
     id: "res001",
-    name: "Lecture Hall A",
+    name: "A301",
     type: "Lecture Hall",
-    location: "Block A",
+    location: "Main Building - 3rd Floor",
     capacity: 120,
   },
   {
     id: "res002",
-    name: "Computer Lab 1",
-    type: "Computer Lab",
-    location: "Block B - Floor 2",
-    capacity: 40,
+    name: "A302",
+    type: "Lecture Hall",
+    location: "Main Building - 3rd Floor",
+    capacity: 120,
   },
   {
     id: "res003",
-    name: "Main Auditorium",
-    type: "Auditorium",
-    location: "Main Building",
-    capacity: 300,
+    name: "A303",
+    type: "Lecture Hall",
+    location: "Main Building - 3rd Floor",
+    capacity: 120,
   },
   {
     id: "res004",
-    name: "Biology Lab",
-    type: "Laboratory",
-    location: "Science Wing",
-    capacity: 35,
+    name: "B401",
+    type: "Computer Lab",
+    location: "Main Building - 4th Floor",
+    capacity: 60,
   },
   {
     id: "res005",
-    name: "Meeting Room 2",
-    type: "Meeting Room",
-    location: "Admin Block",
-    capacity: 12,
+    name: "B402",
+    type: "Computer Lab",
+    location: "Main Building - 4th Floor",
+    capacity: 60,
+  },
+  {
+    id: "res006",
+    name: "Main Auditorium",
+    type: "Auditorium",
+    location: "Main Building - Ground Floor",
+    capacity: 300,
   },
 ];
 
@@ -92,6 +100,8 @@ const formatDisplayTime = (dateTimeString) => {
 };
 
 export default function MyBookings() {
+  const navigate = useNavigate();
+
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState({
@@ -112,6 +122,9 @@ export default function MyBookings() {
     startTimeOnly: "",
     endTimeOnly: "",
   });
+
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [bookingToDelete, setBookingToDelete] = useState(null);
 
   const fetchBookings = async () => {
     setLoading(true);
@@ -202,22 +215,30 @@ export default function MyBookings() {
     }
   };
 
-  const handleDelete = async (booking) => {
+  const openDeleteModal = (booking) => {
     if (!canDeleteBooking(booking.status)) return;
+    setBookingToDelete(booking);
+    setIsDeleteModalOpen(true);
+    setMessage("");
+    setError("");
+  };
 
-    const confirmed = window.confirm(
-      `Delete "${booking.purpose}" permanently from your bookings list?`
-    );
+  const closeDeleteModal = () => {
+    setIsDeleteModalOpen(false);
+    setBookingToDelete(null);
+  };
 
-    if (!confirmed) return;
+  const confirmDeleteBooking = async () => {
+    if (!bookingToDelete) return;
 
     try {
-      setActionLoading({ id: booking.id, type: "delete" });
+      setActionLoading({ id: bookingToDelete.id, type: "delete" });
       setMessage("");
       setError("");
 
-      await bookingApi.deleteBooking(booking.id);
+      await bookingApi.deleteBooking(bookingToDelete.id);
       setMessage("Booking deleted successfully.");
+      closeDeleteModal();
       await fetchBookings();
     } catch (err) {
       setError(
@@ -328,12 +349,22 @@ export default function MyBookings() {
             </p>
           </div>
 
-          <button
-            onClick={fetchBookings}
-            className="booking-button booking-button--secondary"
-          >
-            ↻ {loading ? "Refreshing..." : "Refresh"}
-          </button>
+          <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+            <button
+              type="button"
+              onClick={() => navigate("/bookings/create")}
+              className="booking-button booking-button--primary"
+            >
+              Request a New Booking
+            </button>
+
+            <button
+              onClick={fetchBookings}
+              className="booking-button booking-button--secondary"
+            >
+              ↻ {loading ? "Refreshing..." : "Refresh"}
+            </button>
+          </div>
         </div>
 
         <div className="booking-filters-panel">
@@ -516,7 +547,7 @@ export default function MyBookings() {
 
                     <button
                       type="button"
-                      onClick={() => handleDelete(booking)}
+                      onClick={() => openDeleteModal(booking)}
                       disabled={!allowDelete || isDeleting}
                       className="booking-button booking-button--ghost"
                       title={
@@ -620,6 +651,79 @@ export default function MyBookings() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {isDeleteModalOpen && bookingToDelete && (
+        <div className="booking-modal-overlay" onClick={closeDeleteModal}>
+          <div
+            className="booking-modal booking-modal--centered"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="booking-modal__header">
+              <div>
+                <h3>Delete Booking</h3>
+                <p>{bookingToDelete.purpose}</p>
+              </div>
+
+              <button
+                type="button"
+                className="booking-modal__close"
+                onClick={closeDeleteModal}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="booking-modal__body">
+              <p className="booking-modal__text">
+                Are you sure you want to permanently delete this booking from
+                your list?
+              </p>
+
+              <div className="booking-resource-card booking-resource-card--inline">
+                <div className="booking-resource-card__icon">🗑</div>
+                <div className="booking-resource-card__content">
+                  <span className="booking-resource-card__eyebrow">
+                    Booking to Delete
+                  </span>
+                  <h4 className="booking-resource-card__title">
+                    {bookingToDelete.purpose}
+                  </h4>
+                  <p>
+                    {bookingToDelete.resourceName} •{" "}
+                    {bookingToDelete.resourceType}
+                  </p>
+                  <p>
+                    {bookingToDelete.displayDate} •{" "}
+                    {bookingToDelete.displayStartTime} -{" "}
+                    {bookingToDelete.displayEndTime}
+                  </p>
+                </div>
+              </div>
+
+              <div className="booking-modal__actions">
+                <button
+                  type="button"
+                  onClick={closeDeleteModal}
+                  className="booking-button booking-button--secondary"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="button"
+                  onClick={confirmDeleteBooking}
+                  className="booking-button booking-button--ghost"
+                  disabled={actionLoading.type === "delete"}
+                >
+                  {actionLoading.type === "delete"
+                    ? "Deleting..."
+                    : "Delete Booking"}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

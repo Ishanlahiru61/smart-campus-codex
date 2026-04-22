@@ -20,6 +20,7 @@ export default function BookingModule() {
         <main className="booking-main">
           <Routes>
             <Route path="/" element={<Dashboard />} />
+            <Route path="/admin/dashboard" element={<Dashboard />} />
             <Route path="/bookings/create" element={<CreateBooking />} />
             <Route path="/bookings/my" element={<MyBookings />} />
             <Route path="/admin/bookings" element={<AdminBookings />} />

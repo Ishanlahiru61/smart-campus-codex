@@ -95,7 +95,7 @@
 }
 
 .booking-page--create-booking .booking-textarea {
-  min-height: 168px;
+  min-height: 80px;
   padding: 16px 18px;
   resize: vertical;
 }
@@ -264,4 +264,16 @@
   .booking-resource-card--inline {
     align-items: flex-start;
   }
+}
+
+.booking-modal__submit {
+  background: linear-gradient(135deg, #fff7ed, #ffedd5);
+  color: #c2410c;
+  border: 1px solid #fed7aa;
+}
+
+.booking-modal__submit:hover:not(:disabled) {
+  background: linear-gradient(135deg, #ffedd5, #fdba74);
+  color: #9a3412;
+  border-color: #fdba74;
 }

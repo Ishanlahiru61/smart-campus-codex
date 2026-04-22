@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import bookingApi from "../services/bookingApi";
 import {
   combineDateAndTime,
@@ -9,38 +10,45 @@ import {
 const MOCK_RESOURCES = [
   {
     id: "res001",
-    name: "Lecture Hall A",
+    name: "A301",
     type: "Lecture Hall",
-    location: "Block A",
+    location: "Main Building - 3rd Floor",
     capacity: 120,
   },
   {
     id: "res002",
-    name: "Computer Lab 1",
-    type: "Computer Lab",
-    location: "Block B - Floor 2",
-    capacity: 40,
+    name: "A302",
+    type: "Lecture Hall",
+    location: "Main Building - 3rd Floor",
+    capacity: 120,
   },
   {
     id: "res003",
-    name: "Main Auditorium",
-    type: "Auditorium",
-    location: "Main Building",
-    capacity: 300,
+    name: "A303",
+    type: "Lecture Hall",
+    location: "Main Building - 3rd Floor",
+    capacity: 120,
   },
   {
     id: "res004",
-    name: "Biology Lab",
-    type: "Laboratory",
-    location: "Science Wing",
-    capacity: 35,
+    name: "B401",
+    type: "Computer Lab",
+    location: "Main Building - 4th Floor",
+    capacity: 60,
   },
   {
     id: "res005",
-    name: "Meeting Room 2",
-    type: "Meeting Room",
-    location: "Admin Block",
-    capacity: 12,
+    name: "B402",
+    type: "Computer Lab",
+    location: "Main Building - 4th Floor",
+    capacity: 60,
+  },
+  {
+    id: "res006",
+    name: "Main Auditorium",
+    type: "Auditorium",
+    location: "Main Building - Ground Floor",
+    capacity: 300,
   },
 ];
 
@@ -73,6 +81,8 @@ const TIME_OPTIONS = [
 ];
 
 export default function CreateBooking() {
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     resourceId: "",
     bookingDate: "",
@@ -217,6 +227,10 @@ export default function CreateBooking() {
 
       setMessage("Booking created successfully.");
       resetForm();
+
+      setTimeout(() => {
+        navigate("/bookings/my");
+      }, 700);
     } catch (err) {
       console.log("Create booking error:", err);
       console.log("Backend response:", err?.response?.data);
@@ -247,13 +261,23 @@ export default function CreateBooking() {
   return (
     <section className="booking-page booking-page--create-booking">
       <div className="booking-container booking-container--wide">
-        <div className="booking-page-header">
-          <span className="booking-chip">New Request</span>
-          <h1 className="booking-page-title">Create Booking</h1>
-          <p className="booking-page-subtitle">
-            Reserve a campus resource with a clear time range, purpose, and
-            attendee count.
-          </p>
+        <div className="booking-page-header booking-page-header--row">
+          <div>
+            <span className="booking-chip">New Request</span>
+            <h1 className="booking-page-title">Request Booking</h1>
+            <p className="booking-page-subtitle">
+              Reserve a campus resource with a clear time range, purpose, and
+              attendee count.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => navigate("/bookings/my")}
+            className="booking-button booking-button--secondary"
+          >
+            View My Bookings
+          </button>
         </div>
 
         <div className="booking-layout booking-layout--refined">
@@ -399,7 +423,7 @@ export default function CreateBooking() {
                 disabled={loading || hasValidationErrors}
                 className="booking-button booking-button--primary booking-button--full"
               >
-                {loading ? "Submitting..." : "Create Booking"}
+                {loading ? "Submitting..." : "Request Booking"}
               </button>
             </form>
           </div>

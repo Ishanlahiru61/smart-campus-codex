@@ -1,10 +1,11 @@
 import { NavLink } from "react-router-dom";
 
 const navItems = [
-  { to: "/", label: "Dashboard" },
-  { to: "/bookings/create", label: "Create Booking" },
-  { to: "/bookings/my", label: "My Bookings" },
+  { to: "/admin/dashboard", label: "Admin Dashboard" },
   { to: "/admin/bookings", label: "Admin Bookings" },
+  { to: "/bookings/create", label: "Request Booking" },
+  { to: "/bookings/my", label: "My Bookings" },
+  
 ];
 
 export default function Navbar() {
