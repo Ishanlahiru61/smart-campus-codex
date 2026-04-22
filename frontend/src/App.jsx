@@ -40,7 +40,7 @@ export default function App() {
 
 					{/* Booking Module Routes */}
 					<Route path="/bookings/*" element={<BookingModule />} />
-					<Route path="/admin/*" element={<BookingModule />} />
+					
 
 					{/* Protected Routes */}
 					<Route path="/dashboard" element={
@@ -73,4 +73,3 @@ export default function App() {
 		</Router>
 	);
 }
-
