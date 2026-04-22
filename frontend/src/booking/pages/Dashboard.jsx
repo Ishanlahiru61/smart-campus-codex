@@ -6,7 +6,7 @@ const adminHighlights = [
     title: "Review Booking Requests",
     description:
       "Open the booking management panel to approve, reject, filter, and remove booking records with a cleaner admin workflow.",
-    path: "/admin/bookings",
+    path: "/bookings/admin-bookings",
     cta: "Open Admin Bookings",
     variant: "primary",
   },
@@ -15,7 +15,7 @@ const adminHighlights = [
     title: "Manage Pending Decisions",
     description:
       "Handle approval actions, rejection reasons, and final booking cleanup from one focused admin interface.",
-    path: "/admin/bookings",
+    path: "/bookings/admin-bookings",
     cta: "Manage Requests",
     variant: "secondary",
   },
@@ -43,7 +43,7 @@ export default function Dashboard() {
 
             <div className="admin-dashboard-hero__actions">
               <Link
-                to="/admin/bookings"
+                to="/bookings/admin-bookings"
                 className="booking-button booking-button--primary admin-dashboard-hero__button"
               >
                 Open Admin Bookings

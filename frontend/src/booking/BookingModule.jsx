@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Dashboard from "./pages/Dashboard";
 import CreateBooking from "./pages/CreateBooking";
@@ -13,20 +13,18 @@ import "./styles/admin-bookings.css";
 
 export default function BookingModule() {
   return (
-    <BrowserRouter>
-      <div className="booking-shell">
-        <Navbar />
+    <div className="booking-shell">
+      <Navbar />
 
-        <main className="booking-main">
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/admin/dashboard" element={<Dashboard />} />
-            <Route path="/bookings/create" element={<CreateBooking />} />
-            <Route path="/bookings/my" element={<MyBookings />} />
-            <Route path="/admin/bookings" element={<AdminBookings />} />
-          </Routes>
-        </main>
-      </div>
-    </BrowserRouter>
+      <main className="booking-main">
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="admin-dashboard" element={<Dashboard />} />
+          <Route path="admin-bookings" element={<AdminBookings />} />
+          <Route path="create" element={<CreateBooking />} />
+          <Route path="my" element={<MyBookings />} />
+        </Routes>
+      </main>
+    </div>
   );
 }
