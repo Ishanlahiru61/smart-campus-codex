@@ -1,0 +1,348 @@
+.booking-page--my-bookings {
+  position: relative;
+  overflow: visible;
+  padding-top: 0;
+  margin-top: -32px;
+}
+
+.booking-page--my-bookings::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(248, 251, 255, 0.98) 0%,
+      rgba(248, 251, 255, 0.96) 6%,
+      rgba(248, 251, 255, 0.88) 14%,
+      rgba(248, 251, 255, 0.72) 24%,
+      rgba(243, 246, 251, 0.54) 38%,
+      rgba(243, 246, 251, 0.38) 100%
+    ),
+    url("../images/campus.jpg") center top / cover no-repeat;
+  opacity: 0.82;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.booking-page--my-bookings > .booking-container {
+  position: relative;
+  z-index: 1;
+  padding-top: 48px;
+}
+
+.booking-page--my-bookings .booking-filters-panel {
+  width: 100%;
+  margin: 0 0 24px;
+  padding: 8px 0;
+  border-radius: 0;
+  background: transparent;
+  border: none;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+
+.booking-page--my-bookings .booking-toolbar--wide {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(360px, 2.4fr) minmax(180px, 1fr) minmax(200px, 1fr) auto;
+  gap: 14px;
+  align-items: end;
+}
+
+.booking-page--my-bookings .booking-toolbar--wide .booking-toolbar__item {
+  min-width: 0;
+  max-width: none;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+.booking-page--my-bookings .booking-toolbar__item--search {
+  width: 100%;
+}
+
+.booking-page--my-bookings .booking-toolbar--wide .booking-toolbar__item--action {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
+  margin-left: auto;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+.booking-page--my-bookings .booking-toolbar__item .booking-label {
+  margin-bottom: 6px;
+  padding-left: 2px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.booking-page--my-bookings .booking-toolbar__item .booking-input {
+  width: 100%;
+  height: 48px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid #dbe3ef;
+  padding: 0 16px;
+  box-shadow: none;
+}
+
+.booking-page--my-bookings .booking-toolbar__item .booking-input::placeholder {
+  color: #7b8798;
+}
+
+.booking-page--my-bookings .booking-filters-panel__clear {
+  width: auto;
+  min-width: 118px;
+  height: 48px;
+  padding: 0 20px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+  background: linear-gradient(135deg, #4f6df5, #3153d8);
+  border: none;
+  box-shadow: 0 8px 18px rgba(49, 83, 216, 0.25);
+  transition: all 0.2s ease;
+}
+
+.booking-page--my-bookings .booking-filters-panel__clear:hover {
+  background: linear-gradient(135deg, #3b5bdb, #2746c7);
+  box-shadow: 0 10px 22px rgba(49, 83, 216, 0.35);
+}
+
+.booking-page--my-bookings .booking-label--hidden {
+  display: none;
+}
+
+.booking-card-grid--fixed {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  align-items: stretch;
+}
+
+.booking-card--enhanced {
+  min-height: 430px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-radius: 24px;
+  padding: 24px;
+  border: 1px solid #e8edf5;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.96) 0%,
+    rgba(251, 253, 255, 0.97) 100%
+  );
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.booking-card--enhanced:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.1);
+}
+
+.booking-card__submeta {
+  margin: 6px 0 0;
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+.booking-card__resource-banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  margin: 12px 0 16px;
+  background: linear-gradient(135deg, #eef2ff, #f8fbff);
+  border: 1px solid #dbe4ff;
+  border-radius: 18px;
+}
+
+.booking-card__resource-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #4f6df5, #3153d8);
+  color: white;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  box-shadow: 0 10px 20px rgba(49, 83, 216, 0.2);
+}
+
+.booking-card__resource-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+}
+
+.booking-card__resource_name,
+.booking-card__resource-name {
+  font-size: 1rem;
+  color: #0f172a;
+}
+
+.booking-card__info {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.booking-card__info strong {
+  display: block;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--booking-text);
+  word-break: break-word;
+}
+
+.booking-card__actions {
+  margin-top: 18px;
+}
+
+.booking-card__actions--inline {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.booking-card__actions--inline .booking-button {
+  min-height: 50px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  font-weight: 700;
+  box-shadow: none;
+}
+
+/* Reschedule - purpleish */
+.booking-card__actions--inline .booking-button--ghost-primary {
+  background: linear-gradient(135deg, #f5f3ff, #ede9fe);
+  color: #6d28d9;
+  border: 1px solid #ddd6fe;
+}
+
+.booking-card__actions--inline
+  .booking-button--ghost-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #ede9fe, #c4b5fd);
+  color: #5b21b6;
+  border-color: #c4b5fd;
+  box-shadow: 0 10px 20px rgba(139, 92, 246, 0.15);
+}
+
+/* Cancel - orangish */
+.booking-card__actions--inline .booking-button--soft {
+  background: linear-gradient(135deg, #fff7ed, #ffedd5);
+  color: #c2410c;
+  border: 1px solid #fed7aa;
+}
+
+.booking-card__actions--inline .booking-button--soft:hover:not(:disabled) {
+  background: linear-gradient(135deg, #ffedd5, #fdba74);
+  color: #9a3412;
+  border-color: #fdba74;
+  box-shadow: 0 10px 20px rgba(249, 115, 22, 0.12);
+}
+
+/* Delete - reddish */
+.booking-card__actions--inline .booking-button--ghost {
+  background: linear-gradient(135deg, #fef2f2, #fee2e2);
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.booking-card__actions--inline .booking-button--ghost:hover:not(:disabled) {
+  background: linear-gradient(135deg, #fee2e2, #fecaca);
+  color: #991b1b;
+  border-color: #fca5a5;
+  box-shadow: 0 10px 20px rgba(239, 68, 68, 0.12);
+}
+
+/* Disabled buttons */
+.booking-card__actions--inline .booking-button:disabled {
+  opacity: 0.5;
+  filter: grayscale(0.1);
+  box-shadow: none;
+}
+
+@media (max-width: 1200px) {
+  .booking-card-grid--fixed {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .booking-page--my-bookings .booking-toolbar--wide {
+    grid-template-columns: minmax(280px, 1.8fr) minmax(170px, 1fr) minmax(190px, 1fr) auto;
+  }
+}
+
+@media (max-width: 960px) {
+  .booking-card__info {
+    grid-template-columns: 1fr;
+  }
+
+  .booking-page--my-bookings .booking-toolbar--wide {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .booking-page--my-bookings .booking-toolbar__item--action {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 768px) {
+  .booking-page--my-bookings {
+    margin-top: -24px;
+  }
+
+  .booking-page--my-bookings > .booking-container {
+    padding-top: 36px;
+  }
+
+  .booking-card-grid--fixed {
+    grid-template-columns: 1fr;
+  }
+
+  .booking-card__actions--inline {
+    grid-template-columns: 1fr;
+  }
+
+  .booking-page--my-bookings .booking-toolbar--wide {
+    grid-template-columns: 1fr;
+  }
+
+  .booking-page--my-bookings .booking-toolbar__item--action {
+    justify-content: stretch;
+  }
+
+  .booking-page--my-bookings .booking-filters-panel__clear {
+    width: 100%;
+  }
+}
+
+
+.booking-modal .booking-button--primary {
+  background: linear-gradient(135deg, #ede9fe, #c4b5fd);
+  color: #5b21b6;
+  border: 1px solid #c4b5fd;
+}
+
+.booking-modal .booking-button--primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #ddd6fe, #a78bfa);
+  color: #4c1d95;
+  border-color: #a78bfa;
+  box-shadow: 0 10px 20px rgba(139, 92, 246, 0.18);
+}
+

@@ -4,6 +4,7 @@ import { jwtDecode } from 'jwt-decode';
 import OAuth2RedirectHandler from './pages/OAuth2RedirectHandler';
 import LoginPage from './pages/LoginPage';
 import StartPage from './pages/StartPage';
+import BookingModule from "./booking/BookingModule";
 
 // A simple protective wrapper for the dashboard
 const ProtectedRoute = ({ children }) => {
@@ -37,6 +38,10 @@ export default function App() {
 					<Route path="/login" element={<LoginPage />} />
 					<Route path="/oauth2/redirect" element={<OAuth2RedirectHandler />} />
 
+					{/* Booking Module Routes */}
+					<Route path="/bookings/*" element={<BookingModule />} />
+					<Route path="/admin/*" element={<BookingModule />} />
+
 					{/* Protected Routes */}
 					<Route path="/dashboard" element={
 						<ProtectedRoute>
@@ -68,3 +73,4 @@ export default function App() {
 		</Router>
 	);
 }
+
