@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 public class Booking {
 
     @Id
-    private String id; // Mongo uses String, NOT Long
+    private String id;
 
     private String resourceId;
     private String userId;
@@ -26,4 +26,9 @@ public class Booking {
     private int attendees;
 
     private BookingStatus status;
+
+    private String rejectionReason;
+
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }
