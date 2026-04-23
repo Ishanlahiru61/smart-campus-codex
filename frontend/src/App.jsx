@@ -1,83 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import './App.css';
-import Navigation from './components/Navigation';
-import FacilitiesList from './components/FacilitiesList';
-import FacilityForm from './components/FacilityForm';
-import FacilityDetails from './components/FacilityDetails';
-import Dashboard from './components/Dashboard';
-import { facilitiesAPI } from './services/api';
-
-const APP_STATE_KEY = 'smart-campus-facilities-ui-state';
+import Navigation from './components/TicketNavigation';
+import Dashboard from './components/TicketDashboard';
+import TicketsList from './components/TicketsList';
+import TicketForm from './components/TicketForm';
+import TicketDetails from './components/TicketDetails';
+import { incidentsAPI } from './services/api';
 
 function App() {
-  const [currentPage, setCurrentPage] = useState(() => {
-    const saved = localStorage.getItem(APP_STATE_KEY);
-    if (!saved) return 'dashboard';
-    try {
-      return JSON.parse(saved).currentPage || 'dashboard';
-    } catch {
-      return 'dashboard';
-    }
-  });
-  const [facilities, setFacilities] = useState([]);
-  const [selectedFacility, setSelectedFacility] = useState(null);
+  const [currentPage, setCurrentPage] = useState('dashboard');
+  const [tickets, setTickets] = useState([]);
+  const [selectedTicket, setSelectedTicket] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [editingFacility, setEditingFacility] = useState(null);
-  const [selectedFacilityId, setSelectedFacilityId] = useState(() => {
-    const saved = localStorage.getItem(APP_STATE_KEY);
-    if (!saved) return null;
-    try {
-      return JSON.parse(saved).selectedFacilityId || null;
-    } catch {
-      return null;
-    }
-  });
-  const [searchQuery, setSearchQuery] = useState(() => {
-    const saved = localStorage.getItem(APP_STATE_KEY);
-    if (!saved) return '';
-    try {
-      return JSON.parse(saved).searchQuery || '';
-    } catch {
-      return '';
-    }
-  });
-  const [filterType, setFilterType] = useState(() => {
-    const saved = localStorage.getItem(APP_STATE_KEY);
-    if (!saved) return '';
-    try {
-      return JSON.parse(saved).filterType || '';
-    } catch {
-      return '';
-    }
-  });
-  const [filterStatus, setFilterStatus] = useState(() => {
-    const saved = localStorage.getItem(APP_STATE_KEY);
-    if (!saved) return '';
-    try {
-      return JSON.parse(saved).filterStatus || '';
-    } catch {
-      return '';
-    }
-  });
+  const [editingTicket, setEditingTicket] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
+  const [filterPriority, setFilterPriority] = useState('');
 
-  // Fetch all facilities
-  const fetchFacilities = async (filters = {}) => {
+  // Fetch all tickets
+  const fetchTickets = async (filters = {}) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await facilitiesAPI.getAllFacilities(filters);
+      const response = await incidentsAPI.getAllTickets(filters);
       if (response.success) {
-        setFacilities(response.data);
-        if (selectedFacilityId) {
-          const matched = response.data.find((f) => f.id === selectedFacilityId) || null;
-          setSelectedFacility(matched);
-        }
+        setTickets(response.data);
       }
     } catch (err) {
-      setError('Failed to fetch facilities. Please try again.');
-      console.error('Error fetching facilities:', err);
+      setError('Failed to fetch tickets');
+      console.error('Error fetching tickets:', err);
     } finally {
       setLoading(false);
     }
@@ -89,156 +42,139 @@ function App() {
     if (query.trim()) {
       setLoading(true);
       try {
-        const response = await facilitiesAPI.searchByName(query);
+        const response = await incidentsAPI.searchTickets(query);
         if (response.success) {
-          setFacilities(response.data);
+          setTickets(response.data);
         }
       } catch (err) {
-        setError('Failed to search facilities');
-        console.error('Error searching:', err);
+        setError('Failed to search tickets');
       } finally {
         setLoading(false);
       }
     } else {
-      fetchFacilities({ type: filterType, status: filterStatus });
+      fetchTickets({ status: filterStatus, priority: filterPriority });
     }
   };
 
-  // Handle filters
-  const handleFilter = (type, status) => {
-    setFilterType(type);
+  // Handle filter
+  const handleFilter = (status, priority) => {
     setFilterStatus(status);
-    fetchFacilities({ type: type || undefined, status: status || undefined });
+    setFilterPriority(priority);
+    fetchTickets({ status: status || undefined, priority: priority || undefined });
   };
 
-  // Handle create facility
-  const handleCreateFacility = async (facilityData) => {
+  // Handle create ticket
+  const handleCreateTicket = async (ticketData) => {
     try {
-      const response = await facilitiesAPI.createFacility(facilityData);
+      const response = await incidentsAPI.createTicket(ticketData);
       if (response.success) {
-        setFacilities([...facilities, response.data]);
+        setTickets([...tickets, response.data]);
         setCurrentPage('list');
         setError(null);
       }
     } catch (err) {
-      setError('Failed to create facility');
-      console.error('Error creating facility:', err);
+      setError('Failed to create ticket');
     }
   };
 
-  // Handle update facility
-  const handleUpdateFacility = async (id, facilityData) => {
+  // Handle update ticket
+  const handleUpdateTicket = async (id, ticketData) => {
     try {
-      const response = await facilitiesAPI.updateFacility(id, facilityData);
+      const response = await incidentsAPI.updateTicket(id, ticketData);
       if (response.success) {
-        setFacilities(
-          facilities.map(f => f.id === id ? response.data : f)
-        );
-        setEditingFacility(null);
+        setTickets(tickets.map(t => t.id === id ? response.data : t));
+        setEditingTicket(null);
         setCurrentPage('list');
         setError(null);
       }
     } catch (err) {
-      setError('Failed to update facility');
-      console.error('Error updating facility:', err);
+      setError('Failed to update ticket');
     }
   };
 
-  // Handle delete facility
-  const handleDeleteFacility = async (id) => {
-    if (window.confirm('Are you sure you want to delete this facility?')) {
+  // Handle delete ticket
+  const handleDeleteTicket = async (id) => {
+    if (window.confirm('Are you sure you want to delete this ticket?')) {
       try {
-        await facilitiesAPI.deleteFacility(id);
-        setFacilities(facilities.filter(f => f.id !== id));
-        if (selectedFacility?.id === id) {
-          setSelectedFacility(null);
-          setSelectedFacilityId(null);
+        await incidentsAPI.deleteTicket(id);
+        setTickets(tickets.filter(t => t.id !== id));
+        if (selectedTicket?.id === id) {
+          setSelectedTicket(null);
           setCurrentPage('list');
         }
-        setError(null);
       } catch (err) {
-        setError('Failed to delete facility');
-        console.error('Error deleting facility:', err);
+        setError('Failed to delete ticket');
       }
     }
   };
 
   // Handle view details
-  const handleViewDetails = (facility) => {
-    setSelectedFacility(facility);
-    setSelectedFacilityId(facility.id);
+  const handleViewDetails = (ticket) => {
+    setSelectedTicket(ticket);
     setCurrentPage('details');
   };
 
   // Handle edit
-  const handleEdit = (facility) => {
-    setEditingFacility(facility);
+  const handleEdit = (ticket) => {
+    setEditingTicket(ticket);
     setCurrentPage('form');
   };
 
   // Initialize data
   useEffect(() => {
-    fetchFacilities();
+    fetchTickets();
   }, []);
-
-  useEffect(() => {
-    localStorage.setItem(
-      APP_STATE_KEY,
-      JSON.stringify({
-        currentPage,
-        searchQuery,
-        filterType,
-        filterStatus,
-        selectedFacilityId,
-      })
-    );
-  }, [currentPage, searchQuery, filterType, filterStatus, selectedFacilityId]);
 
   // Render pages
   const renderPage = () => {
     switch (currentPage) {
       case 'dashboard':
         return (
-          <Dashboard 
-            facilities={facilities} 
+          <Dashboard
+            tickets={tickets}
             onNavigate={(page) => setCurrentPage(page)}
           />
         );
       case 'list':
         return (
-          <FacilitiesList
-            facilities={facilities}
+          <TicketsList
+            tickets={tickets}
             loading={loading}
             error={error}
             searchQuery={searchQuery}
-            filterType={filterType}
             filterStatus={filterStatus}
+            filterPriority={filterPriority}
             onSearch={handleSearch}
             onFilter={handleFilter}
             onViewDetails={handleViewDetails}
             onEdit={handleEdit}
-            onDelete={handleDeleteFacility}
+            onDelete={handleDeleteTicket}
             onCreateNew={() => setCurrentPage('form')}
+            onRefresh={() => fetchTickets()}
           />
         );
       case 'form':
         return (
-          <FacilityForm
-            facility={editingFacility}
-            onSubmit={editingFacility ? handleUpdateFacility : handleCreateFacility}
+          <TicketForm
+            ticket={editingTicket}
+            onSubmit={editingTicket ? handleUpdateTicket : handleCreateTicket}
             onCancel={() => {
-              setEditingFacility(null);
+              setEditingTicket(null);
               setCurrentPage('list');
             }}
           />
         );
       case 'details':
-        return selectedFacility ? (
-          <FacilityDetails
-            facility={selectedFacility}
+        return selectedTicket ? (
+          <TicketDetails
+            ticket={selectedTicket}
             onEdit={handleEdit}
-            onDelete={handleDeleteFacility}
+            onDelete={handleDeleteTicket}
             onBack={() => setCurrentPage('list')}
+            onUpdateTicket={(updatedTicket) => {
+              setSelectedTicket(updatedTicket);
+              setTickets(tickets.map(t => t.id === updatedTicket.id ? updatedTicket : t));
+            }}
           />
         ) : null;
       default:
