@@ -2,6 +2,9 @@ package com.smartcampus.facility.service;
 
 import com.smartcampus.facility.dto.FacilityRequestDTO;
 import com.smartcampus.facility.entity.Facility;
+import com.smartcampus.booking.repository.BookingRepository;
+import com.smartcampus.booking.entity.BookingStatus;
+import com.smartcampus.booking.entity.Booking;
 import com.smartcampus.facility.repository.FacilityRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,6 +19,7 @@ import java.util.stream.Collectors;
 public class FacilityService {
 
     private final FacilityRepository facilityRepository;
+    private final BookingRepository bookingRepository;
 
     /**
      * GET: Retrieve all facilities
@@ -102,6 +106,12 @@ public class FacilityService {
      */
     public boolean deleteFacility(String id) {
         if (facilityRepository.existsById(id)) {
+            List<Booking> activeBookings = bookingRepository.findByResourceId(id).stream()
+                    .filter(b -> b.getStatus() == BookingStatus.PENDING || b.getStatus() == BookingStatus.APPROVED)
+                    .collect(Collectors.toList());
+            if (!activeBookings.isEmpty()) {
+                throw new IllegalStateException("Cannot delete facility with active bookings.");
+            }
             facilityRepository.deleteById(id);
             return true;
         }

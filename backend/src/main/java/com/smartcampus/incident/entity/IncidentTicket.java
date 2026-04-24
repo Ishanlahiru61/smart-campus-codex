@@ -1,4 +1,4 @@
-package com.smartcampus.incidents.model;
+package com.smartcampus.incident.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

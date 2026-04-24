@@ -7,8 +7,11 @@ import com.smartcampus.booking.entity.Booking;
 import com.smartcampus.booking.service.BookingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
+import java.util.Map;
 
 import java.util.List;
 
@@ -22,72 +25,120 @@ public class BookingController {
 
     // 1. CREATE BOOKING
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public Booking createBooking(@Valid @RequestBody BookingRequestDTO dto) {
-        return bookingService.createBooking(dto);
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ResponseEntity<?> createBooking(@Valid @RequestBody BookingRequestDTO dto) {
+        Booking booking = bookingService.createBooking(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
+            "success", true,
+            "message", "Booking created successfully",
+            "data", booking
+        ));
     }
 
     // 2. GET ALL BOOKINGS
     @GetMapping
-    @ResponseStatus(HttpStatus.OK)
-    public List<Booking> getAllBookings() {
-        return bookingService.getAllBookings();
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ResponseEntity<?> getAllBookings() {
+        List<Booking> bookings = bookingService.getAllBookings();
+        return ResponseEntity.ok(Map.of(
+            "success", true,
+            "message", "Bookings retrieved successfully",
+            "data", bookings,
+            "count", bookings.size()
+        ));
     }
 
     // 3. GET BOOKING BY ID
     @GetMapping("/{bookingId}")
-    @ResponseStatus(HttpStatus.OK)
-    public Booking getBookingById(@PathVariable String bookingId) {
-        return bookingService.getBookingById(bookingId);
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ResponseEntity<?> getBookingById(@PathVariable String bookingId) {
+        Booking booking = bookingService.getBookingById(bookingId);
+        return ResponseEntity.ok(Map.of(
+            "success", true,
+            "message", "Booking retrieved successfully",
+            "data", booking
+        ));
     }
 
     // 4. GET BOOKINGS BY USER ID
     @GetMapping("/user/{userId}")
-    @ResponseStatus(HttpStatus.OK)
-    public List<Booking> getBookingsByUserId(@PathVariable String userId) {
-        return bookingService.getBookingsByUserId(userId);
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ResponseEntity<?> getBookingsByUserId(@PathVariable String userId) {
+        List<Booking> bookings = bookingService.getBookingsByUserId(userId);
+        return ResponseEntity.ok(Map.of(
+            "success", true,
+            "message", "User bookings retrieved successfully",
+            "data", bookings,
+            "count", bookings.size()
+        ));
     }
 
     // 5. UPDATE BOOKING
     @PutMapping("/{bookingId}")
-    @ResponseStatus(HttpStatus.OK)
-    public Booking updateBooking(@PathVariable String bookingId,
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ResponseEntity<?> updateBooking(@PathVariable String bookingId,
                                  @Valid @RequestBody BookingRequestDTO dto) {
-        return bookingService.updateBooking(bookingId, dto);
+        Booking booking = bookingService.updateBooking(bookingId, dto);
+        return ResponseEntity.ok(Map.of(
+            "success", true,
+            "message", "Booking updated successfully",
+            "data", booking
+        ));
     }
 
     // 6. APPROVE BOOKING
     @PatchMapping("/{bookingId}/approve")
-    @ResponseStatus(HttpStatus.OK)
-    public Booking approveBooking(@PathVariable String bookingId) {
-        return bookingService.approveBooking(bookingId);
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> approveBooking(@PathVariable String bookingId) {
+        Booking booking = bookingService.approveBooking(bookingId);
+        return ResponseEntity.ok(Map.of(
+            "success", true,
+            "message", "Booking approved successfully",
+            "data", booking
+        ));
     }
 
     // 7. REJECT BOOKING
     @PatchMapping("/{bookingId}/reject")
-    @ResponseStatus(HttpStatus.OK)
-    public Booking rejectBooking(@PathVariable String bookingId,
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> rejectBooking(@PathVariable String bookingId,
                                  @Valid @RequestBody BookingStatusUpdateDTO dto) {
-        return bookingService.rejectBooking(bookingId, dto);
+        Booking booking = bookingService.rejectBooking(bookingId, dto);
+        return ResponseEntity.ok(Map.of(
+            "success", true,
+            "message", "Booking rejected successfully",
+            "data", booking
+        ));
     }
 
     // 8. CANCEL BOOKING
     @PatchMapping("/{bookingId}/cancel")
-    @ResponseStatus(HttpStatus.OK)
-    public Booking cancelBooking(@PathVariable String bookingId) {
-        return bookingService.cancelBooking(bookingId);
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ResponseEntity<?> cancelBooking(@PathVariable String bookingId) {
+        Booking booking = bookingService.cancelBooking(bookingId);
+        return ResponseEntity.ok(Map.of(
+            "success", true,
+            "message", "Booking cancelled successfully",
+            "data", booking
+        ));
     }
 
     // 9. RESCHEDULE BOOKING
     @PatchMapping("/{bookingId}/reschedule")
-    @ResponseStatus(HttpStatus.OK)
-    public Booking rescheduleBooking(@PathVariable String bookingId,
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ResponseEntity<?> rescheduleBooking(@PathVariable String bookingId,
                                      @Valid @RequestBody BookingRescheduleDTO dto) {
-        return bookingService.rescheduleBooking(bookingId, dto);
+        Booking booking = bookingService.rescheduleBooking(bookingId, dto);
+        return ResponseEntity.ok(Map.of(
+            "success", true,
+            "message", "Booking rescheduled successfully",
+            "data", booking
+        ));
     }
 
     // 10. DELETE BOOKING
     @DeleteMapping("/{bookingId}")
+    @PreAuthorize("hasRole('ADMIN')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteBooking(@PathVariable String bookingId) {
         bookingService.deleteBooking(bookingId);

@@ -6,6 +6,12 @@ import com.smartcampus.booking.dto.BookingStatusUpdateDTO;
 import com.smartcampus.booking.entity.Booking;
 import com.smartcampus.booking.entity.BookingStatus;
 import com.smartcampus.booking.repository.BookingRepository;
+import com.smartcampus.exception.InvalidBookingException;
+import com.smartcampus.exception.ResourceNotFoundException;
+import com.smartcampus.facility.entity.Facility;
+import com.smartcampus.facility.repository.FacilityRepository;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -17,10 +23,12 @@ import java.util.List;
 public class BookingServiceImpl implements BookingService {
 
     private final BookingRepository bookingRepository;
+    private final FacilityRepository facilityRepository;
 
     @Override
     public Booking createBooking(BookingRequestDTO dto) {
         validateTimeRange(dto.getStartTime(), dto.getEndTime());
+        validateFacility(dto.getResourceId(), dto.getStartTime(), dto.getEndTime());
 
         checkForConflicts(
                 dto.getResourceId(),
@@ -29,9 +37,11 @@ public class BookingServiceImpl implements BookingService {
                 null
         );
 
+        String currentUser = SecurityContextHolder.getContext().getAuthentication().getName();
+
         Booking booking = Booking.builder()
                 .resourceId(dto.getResourceId())
-                .userId("user1")
+                .userId(currentUser)
                 .startTime(dto.getStartTime())
                 .endTime(dto.getEndTime())
                 .purpose(dto.getPurpose())
@@ -46,13 +56,29 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<Booking> getAllBookings() {
-        return bookingRepository.findAll();
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
+            return bookingRepository.findAll();
+        } else if (auth != null) {
+            return bookingRepository.findByUserId(auth.getName());
+        }
+        return List.of();
     }
 
     @Override
     public Booking getBookingById(String bookingId) {
-        return bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new RuntimeException("Booking not found"));
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking not found"));
+
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null) {
+            boolean isAdmin = auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+            if (!isAdmin && !booking.getUserId().equals(auth.getName())) {
+                throw new AccessDeniedException("Access denied: You do not own this booking");
+            }
+        }
+
+        return booking;
     }
 
     @Override
@@ -65,10 +91,11 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = getBookingById(bookingId);
 
         if (booking.getStatus() != BookingStatus.PENDING) {
-            throw new IllegalArgumentException("Only pending bookings can be updated");
+            throw new InvalidBookingException("Only pending bookings can be updated");
         }
 
         validateTimeRange(dto.getStartTime(), dto.getEndTime());
+        validateFacility(dto.getResourceId(), dto.getStartTime(), dto.getEndTime());
 
         checkForConflicts(
                 dto.getResourceId(),
@@ -91,7 +118,7 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = getBookingById(bookingId);
 
         if (booking.getStatus() != BookingStatus.PENDING) {
-            throw new IllegalArgumentException("Only pending bookings can be approved");
+            throw new InvalidBookingException("Only pending bookings can be approved");
         }
 
         booking.setStatus(BookingStatus.APPROVED);
@@ -103,7 +130,7 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = getBookingById(bookingId);
 
         if (booking.getStatus() != BookingStatus.PENDING) {
-            throw new IllegalArgumentException("Only pending bookings can be rejected");
+            throw new InvalidBookingException("Only pending bookings can be rejected");
         }
 
         booking.setStatus(BookingStatus.REJECTED);
@@ -117,11 +144,11 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = getBookingById(bookingId);
 
         if (booking.getStatus() == BookingStatus.CANCELLED) {
-            throw new IllegalArgumentException("Booking is already cancelled");
+            throw new InvalidBookingException("Booking is already cancelled");
         }
 
         if (booking.getStatus() == BookingStatus.REJECTED) {
-            throw new IllegalArgumentException("Rejected bookings cannot be cancelled");
+            throw new InvalidBookingException("Rejected bookings cannot be cancelled");
         }
 
         booking.setStatus(BookingStatus.CANCELLED);
@@ -133,14 +160,15 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = getBookingById(bookingId);
 
         if (booking.getStatus() == BookingStatus.CANCELLED) {
-            throw new IllegalArgumentException("Cancelled bookings cannot be rescheduled");
+            throw new InvalidBookingException("Cancelled bookings cannot be rescheduled");
         }
 
         if (booking.getStatus() == BookingStatus.REJECTED) {
-            throw new IllegalArgumentException("Rejected bookings cannot be rescheduled");
+            throw new InvalidBookingException("Rejected bookings cannot be rescheduled");
         }
 
         validateTimeRange(dto.getStartTime(), dto.getEndTime());
+        validateFacility(booking.getResourceId(), dto.getStartTime(), dto.getEndTime());
 
         checkForConflicts(
                 booking.getResourceId(),
@@ -159,7 +187,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public void deleteBooking(String bookingId) {
         if (!bookingRepository.existsById(bookingId)) {
-            throw new RuntimeException("Booking not found");
+            throw new ResourceNotFoundException("Booking not found");
         }
 
         bookingRepository.deleteById(bookingId);
@@ -167,8 +195,44 @@ public class BookingServiceImpl implements BookingService {
 
     private void validateTimeRange(LocalDateTime startTime, LocalDateTime endTime) {
         if (!startTime.isBefore(endTime)) {
-            throw new IllegalArgumentException("Start time must be before end time");
+            throw new InvalidBookingException("Start time must be before end time");
         }
+    }
+
+    private void validateFacility(String resourceId, LocalDateTime start, LocalDateTime end) {
+        Facility facility = facilityRepository.findById(resourceId)
+                .orElseThrow(() -> new ResourceNotFoundException("Facility not found with ID: " + resourceId));
+
+        if (facility.getStatus() != Facility.FacilityStatus.ACTIVE) {
+            throw new InvalidBookingException("Facility is not active and cannot be booked");
+        }
+
+        if (facility.getAvailabilityWindows() != null && !facility.getAvailabilityWindows().isEmpty()) {
+            boolean isWithinWindow = facility.getAvailabilityWindows().stream()
+                    .anyMatch(window -> isWithinAvailabilityWindow(start, end, window));
+
+            if (!isWithinWindow) {
+                throw new InvalidBookingException("Requested time is outside the facility's availability windows");
+            }
+        }
+    }
+
+    private boolean isWithinAvailabilityWindow(LocalDateTime start, LocalDateTime end, Facility.AvailabilityWindow window) {
+        String dayOfWeek = start.getDayOfWeek().name();
+        if (!dayOfWeek.equalsIgnoreCase(window.getDayOfWeek())) {
+            return false;
+        }
+        if (!end.getDayOfWeek().name().equalsIgnoreCase(window.getDayOfWeek())) {
+            return false;
+        }
+
+        java.time.LocalTime windowStart = java.time.LocalTime.parse(window.getStartTime());
+        java.time.LocalTime windowEnd = java.time.LocalTime.parse(window.getEndTime());
+
+        java.time.LocalTime bookingStart = start.toLocalTime();
+        java.time.LocalTime bookingEnd = end.toLocalTime();
+
+        return !bookingStart.isBefore(windowStart) && !bookingEnd.isAfter(windowEnd);
     }
 
     private void checkForConflicts(String resourceId,
@@ -189,7 +253,7 @@ public class BookingServiceImpl implements BookingService {
                 );
 
         if (hasConflict) {
-            throw new IllegalArgumentException("Time slot already booked");
+            throw new InvalidBookingException("Time slot already booked");
         }
     }
 }

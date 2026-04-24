@@ -1,6 +1,6 @@
-package com.smartcampus.incidents.dto;
+package com.smartcampus.incident.dto;
 
-import com.smartcampus.incidents.model.IncidentTicket;
+import com.smartcampus.incident.entity.IncidentTicket;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

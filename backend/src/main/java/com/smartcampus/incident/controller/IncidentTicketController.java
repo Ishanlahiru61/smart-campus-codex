@@ -1,18 +1,21 @@
-package com.smartcampus.incidents.controller;
+package com.smartcampus.incident.controller;
 
-import com.smartcampus.incidents.dto.AddCommentDTO;
-import com.smartcampus.incidents.dto.CreateIncidentTicketDTO;
-import com.smartcampus.incidents.dto.IncidentTicketResponseDTO;
-import com.smartcampus.incidents.model.IncidentTicket;
-import com.smartcampus.incidents.service.IncidentTicketService;
+import com.smartcampus.incident.dto.AddCommentDTO;
+import com.smartcampus.incident.dto.CreateIncidentTicketDTO;
+import com.smartcampus.incident.dto.IncidentTicketResponseDTO;
+import com.smartcampus.incident.entity.IncidentTicket;
+import com.smartcampus.incident.repository.IncidentTicketRepository;
+import com.smartcampus.incident.service.IncidentTicketService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
+import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.security.access.prepost.PreAuthorize;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -23,6 +26,9 @@ import java.util.Map;
 public class IncidentTicketController {
 
     private final IncidentTicketService incidentService;
+    private final IncidentTicketRepository incidentTicketRepository;
+    private final ObjectMapper objectMapper;
+    private final Validator validator;
 
     // ==================== GET ENDPOINTS ====================
 
@@ -31,6 +37,7 @@ public class IncidentTicketController {
      * HTTP Method: GET | Status: 200 OK
      */
     @GetMapping
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<?> getAllTickets(
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String facility,
@@ -65,6 +72,7 @@ public class IncidentTicketController {
      * HTTP Method: GET | Status: 200 OK or 404 NOT FOUND
      */
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<?> getTicketById(@PathVariable String id) {
         try {
             return incidentService.getTicketById(id)
@@ -82,10 +90,11 @@ public class IncidentTicketController {
     }
 
     /**
-     * GET /incidents/open - Get open tickets
+     * GET /incidents/filter/open - Get open tickets
      * HTTP Method: GET | Status: 200 OK
      */
     @GetMapping("/filter/open")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<?> getOpenTickets() {
         try {
             List<IncidentTicket> tickets = incidentService.getOpenTickets();
@@ -102,10 +111,36 @@ public class IncidentTicketController {
     }
 
     /**
+     * GET /incidents/filter/my - Get tickets reported by the authenticated user
+     * Queries by reportedBy (= JWT email, always stored) for reliable results.
+     * HTTP Method: GET | Status: 200 OK
+     */
+    @GetMapping("/filter/my")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ResponseEntity<?> getMyTickets() {
+        try {
+            String email = org.springframework.security.core.context.SecurityContextHolder
+                    .getContext().getAuthentication().getName();
+            // reportedBy is always the JWT email — use it as the reliable filter
+            List<IncidentTicket> tickets = incidentTicketRepository.findByReportedBy(email);
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Your tickets retrieved successfully",
+                    "data", tickets.stream().map(IncidentTicketResponseDTO::fromEntity).toList(),
+                    "count", tickets.size()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("success", false, "message", "Error retrieving your tickets: " + e.getMessage()));
+        }
+    }
+
+    /**
      * GET /incidents/unassigned - Get unassigned tickets
      * HTTP Method: GET | Status: 200 OK
      */
     @GetMapping("/filter/unassigned")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getUnassignedTickets() {
         try {
             List<IncidentTicket> tickets = incidentService.getUnassignedTickets();
@@ -126,6 +161,7 @@ public class IncidentTicketController {
      * HTTP Method: GET | Status: 200 OK
      */
     @GetMapping("/technician/{technicianId}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'TECHNICIAN')")
     public ResponseEntity<?> getTechnicianTickets(@PathVariable String technicianId) {
         try {
             List<IncidentTicket> tickets = incidentService.getTechnicianTickets(technicianId);
@@ -186,10 +222,22 @@ public class IncidentTicketController {
      * POST /incidents - Create new incident ticket
      * HTTP Method: POST | Status: 201 CREATED
      */
-    @PostMapping
-    public ResponseEntity<?> createTicket(@Valid @RequestBody CreateIncidentTicketDTO request) {
+    @PostMapping(consumes = {"multipart/form-data"})
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<?> createTicket(
+            @RequestPart("incident") String incidentJson,
+            @RequestPart(value = "files", required = false) MultipartFile[] files) {
         try {
-            IncidentTicket ticket = incidentService.createIncidentTicket(request);
+            CreateIncidentTicketDTO request = objectMapper.readValue(incidentJson, CreateIncidentTicketDTO.class);
+            
+            var violations = validator.validate(request);
+            if (!violations.isEmpty()) {
+                StringBuilder sb = new StringBuilder();
+                violations.forEach(v -> sb.append(v.getMessage()).append("; "));
+                throw new IllegalArgumentException(sb.toString());
+            }
+
+            IncidentTicket ticket = incidentService.createIncidentTicket(request, files);
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(Map.of(
                             "success", true,
@@ -306,6 +354,7 @@ public class IncidentTicketController {
      * HTTP Method: PATCH | Status: 200 OK
      */
     @PatchMapping("/{id}/status")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> updateStatus(
             @PathVariable String id,
             @RequestParam IncidentTicket.TicketStatus status,
@@ -331,6 +380,7 @@ public class IncidentTicketController {
      * HTTP Method: PATCH | Status: 200 OK
      */
     @PatchMapping("/{id}/assign")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> assignTechnician(
             @PathVariable String id,
             @RequestParam String technicianId,
@@ -355,6 +405,7 @@ public class IncidentTicketController {
      * HTTP Method: PATCH | Status: 200 OK
      */
     @PatchMapping("/{id}/unassign")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> unassignTechnician(@PathVariable String id) {
         try {
             return incidentService.unassignTechnician(id)
@@ -378,6 +429,7 @@ public class IncidentTicketController {
      * HTTP Method: DELETE | Status: 204 NO CONTENT or 404 NOT FOUND
      */
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> deleteTicket(@PathVariable String id) {
         try {
             if (incidentService.deleteTicket(id)) {

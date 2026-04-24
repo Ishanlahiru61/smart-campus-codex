@@ -7,7 +7,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import jakarta.validation.constraints.*;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -51,7 +50,7 @@ public class FacilityRequestDTO {
     @Email(message = "Invalid email format")
     private String contactEmail;
 
-    @Pattern(regexp = "^[+]?[0-9]{10,}$", message = "Invalid phone number")
+    @Pattern(regexp = "^$|^[+]?[0-9]{10,}$", message = "Phone number must be at least 10 digits")
     private String contactPhone;
 
     private List<Facility.AvailabilityWindow> availabilityWindows;

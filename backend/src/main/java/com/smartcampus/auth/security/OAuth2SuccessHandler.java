@@ -2,7 +2,6 @@ package com.smartcampus.auth.security;
 
 import com.smartcampus.auth.entity.User;
 import com.smartcampus.auth.repository.UserRepository;
-import com.smartcampus.auth.util.EncryptionUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -22,7 +21,6 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
-    private final EncryptionUtil encryptionUtil;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -36,8 +34,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             return;
         }
 
-        String encryptedEmail = encryptionUtil.encrypt(email);
-        Optional<User> userOpt = userRepository.findByEmail(encryptedEmail);
+        Optional<User> userOpt = userRepository.findByEmail(email.trim());
 
         if (userOpt.isEmpty() || !userOpt.get().isEnabled()) {
             redirectWithError(request, response, "User not pre-approved or disabled by Admin.");
@@ -48,11 +45,11 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         String token = jwtUtil.generateToken(user.getEmail(), user.getRoles()); // The raw email is stored encoded or token usually embeds raw email. Passing raw email or encrypted based on requirements
 
         // We redirect them specifying the token so React can catch it
-        getRedirectStrategy().sendRedirect(request, response, "http://localhost:3000/oauth2/redirect?token=" + token);
+        getRedirectStrategy().sendRedirect(request, response, "http://localhost:5173/oauth2/redirect?token=" + token);
     }
 
     private void redirectWithError(HttpServletRequest request, HttpServletResponse response, String errorMsg) throws IOException {
         String encodedError = URLEncoder.encode(errorMsg, StandardCharsets.UTF_8);
-        getRedirectStrategy().sendRedirect(request, response, "http://localhost:3000/login?error=" + encodedError);
+        getRedirectStrategy().sendRedirect(request, response, "http://localhost:5173/login?error=" + encodedError);
     }
 }

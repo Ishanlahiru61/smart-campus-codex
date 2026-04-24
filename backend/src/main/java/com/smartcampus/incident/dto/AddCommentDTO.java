@@ -1,4 +1,4 @@
-package com.smartcampus.incidents.dto;
+package com.smartcampus.incident.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

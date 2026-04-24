@@ -1,6 +1,6 @@
-package com.smartcampus.incidents.repository;
+package com.smartcampus.incident.repository;
 
-import com.smartcampus.incidents.model.IncidentTicket;
+import com.smartcampus.incident.entity.IncidentTicket;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -59,4 +59,10 @@ public interface IncidentTicketRepository extends MongoRepository<IncidentTicket
     // Find high priority open tickets
     @Query("{ 'priority': 'HIGH', 'status': 'OPEN' }")
     List<IncidentTicket> findHighPriorityOpenTickets();
+
+    // Find by reporter
+    List<IncidentTicket> findByReportedBy(String reportedBy);
+
+    // Find by reporter email (used for /incidents/my endpoint)
+    List<IncidentTicket> findByReportedByEmail(String reportedByEmail);
 }

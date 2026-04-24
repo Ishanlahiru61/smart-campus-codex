@@ -5,11 +5,15 @@ import com.smartcampus.facility.entity.Facility;
 import com.smartcampus.facility.service.FacilityService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.smartcampus.service.CloudinaryService;
+import org.springframework.web.multipart.MultipartFile;
+import jakarta.validation.Validator;
 import java.util.List;
 import java.util.Map;
 
@@ -20,6 +24,9 @@ import java.util.Map;
 public class FacilityController {
 
     private final FacilityService facilityService;
+    private final CloudinaryService cloudinaryService;
+    private final ObjectMapper objectMapper;
+    private final Validator validator;
 
     /**
      * GET /facilities - Retrieve all facilities
@@ -27,6 +34,7 @@ public class FacilityController {
      * Status: 200 OK
      */
     @GetMapping
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<?> getAllFacilities(
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String location,
@@ -65,6 +73,7 @@ public class FacilityController {
      * Status: 200 OK or 404 NOT FOUND
      */
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<?> getFacilityById(@PathVariable String id) {
         try {
             return facilityService.getFacilityById(id)
@@ -92,10 +101,28 @@ public class FacilityController {
      * HTTP Method: POST
      * Status: 201 CREATED
      */
-    @PostMapping
-    public ResponseEntity<?> createFacility(@Valid @RequestBody FacilityRequestDTO request) {
+    @PostMapping(consumes = {"multipart/form-data"})
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> createFacility(
+            @RequestPart("facility") String facilityJson,
+            @RequestPart(value = "image", required = false) MultipartFile image) {
         try {
-            String currentUser = "SYSTEM_USER"; // In real app, get from SecurityContext
+            FacilityRequestDTO request = objectMapper.readValue(facilityJson, FacilityRequestDTO.class);
+            
+            // Validate the parsed request
+            var violations = validator.validate(request);
+            if (!violations.isEmpty()) {
+                StringBuilder sb = new StringBuilder();
+                violations.forEach(v -> sb.append(v.getMessage()).append("; "));
+                throw new IllegalArgumentException(sb.toString());
+            }
+
+            if (image != null && !image.isEmpty()) {
+                String imageUrl = cloudinaryService.uploadFile(image);
+                request.setImageUrl(imageUrl);
+            }
+
+            String currentUser = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
             Facility createdFacility = facilityService.createFacility(request, currentUser);
 
             return ResponseEntity.status(HttpStatus.CREATED)
@@ -118,12 +145,29 @@ public class FacilityController {
      * HTTP Method: PUT
      * Status: 200 OK or 404 NOT FOUND
      */
-    @PutMapping("/{id}")
+    @PutMapping(value = "/{id}", consumes = {"multipart/form-data"})
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> updateFacility(
             @PathVariable String id,
-            @Valid @RequestBody FacilityRequestDTO request) {
+            @RequestPart("facility") String facilityJson,
+            @RequestPart(value = "image", required = false) MultipartFile image) {
         try {
-            String currentUser = "SYSTEM_USER"; // In real app, get from SecurityContext
+            FacilityRequestDTO request = objectMapper.readValue(facilityJson, FacilityRequestDTO.class);
+            
+            // Validate the parsed request
+            var violations = validator.validate(request);
+            if (!violations.isEmpty()) {
+                StringBuilder sb = new StringBuilder();
+                violations.forEach(v -> sb.append(v.getMessage()).append("; "));
+                throw new IllegalArgumentException(sb.toString());
+            }
+
+            if (image != null && !image.isEmpty()) {
+                String imageUrl = cloudinaryService.uploadFile(image);
+                request.setImageUrl(imageUrl);
+            }
+
+            String currentUser = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
             return facilityService.updateFacility(id, request, currentUser)
                     .map(updatedFacility -> ResponseEntity.ok(Map.of(
                             "success", true,
@@ -150,6 +194,7 @@ public class FacilityController {
      * Status: 204 NO CONTENT or 404 NOT FOUND
      */
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> deleteFacility(@PathVariable String id) {
         try {
             if (facilityService.deleteFacility(id)) {
@@ -176,6 +221,7 @@ public class FacilityController {
      * Status: 200 OK
      */
     @GetMapping("/search/by-name")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<?> searchByName(@RequestParam String name) {
         try {
             List<Facility> facilities = facilityService.searchFacilitiesByName(name);
@@ -200,6 +246,7 @@ public class FacilityController {
      * Status: 200 OK
      */
     @GetMapping("/available")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<?> getAvailableFacilities(
             @RequestParam String type,
             @RequestParam Integer capacity) {
@@ -226,11 +273,12 @@ public class FacilityController {
      * Status: 200 OK or 404 NOT FOUND
      */
     @PatchMapping("/{id}/status")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> updateFacilityStatus(
             @PathVariable String id,
             @RequestParam Facility.FacilityStatus status) {
         try {
-            String currentUser = "SYSTEM_USER"; // In real app, get from SecurityContext
+            String currentUser = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
             return facilityService.updateFacilityStatus(id, status, currentUser)
                     .map(updatedFacility -> ResponseEntity.ok(Map.of(
                             "success", true,
@@ -257,6 +305,7 @@ public class FacilityController {
      * Status: 200 OK
      */
     @GetMapping("/statistics")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<?> getStatistics() {
         try {
             FacilityService.FacilityStatistics stats = facilityService.getStatistics();

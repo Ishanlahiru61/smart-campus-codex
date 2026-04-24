@@ -1,6 +1,6 @@
-package com.smartcampus.incidents.dto;
+package com.smartcampus.incident.dto;
 
-import com.smartcampus.incidents.model.IncidentTicket;
+import com.smartcampus.incident.entity.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -40,9 +40,10 @@ public class CreateIncidentTicketDTO {
     @NotBlank(message = "Reported by name is required")
     private String reportedBy;
 
+    // Optional fields — send null from frontend, not empty string
     @Email(message = "Invalid email format")
     private String reportedByEmail;
 
-    @Pattern(regexp = "^[+]?[0-9]{10,}$", message = "Invalid phone number")
+    @Pattern(regexp = "^[+]?[0-9]{10,}$", message = "Invalid phone number (min 10 digits)")
     private String reportedByPhone;
 }

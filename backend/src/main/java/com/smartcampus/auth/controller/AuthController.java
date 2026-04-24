@@ -32,14 +32,17 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequest request) {
-        String encryptedEmail = encryptionUtil.encrypt(request.email());
-        Optional<User> userOpt = userRepository.findByEmail(encryptedEmail);
+        String email = request.email().trim();
+        System.out.println("Login email: " + email);
+        
+        Optional<User> userOpt = userRepository.findByEmail(email);
         
         if (userOpt.isEmpty()) {
-            return ResponseEntity.status(401).body(Map.of("message", "Invalid email or user not found"));
+            return ResponseEntity.status(401).body(Map.of("message", "Invalid email or password"));
         }
         
         User user = userOpt.get();
+        System.out.println("User found: " + user);
 
         if (!user.isEnabled()) {
             return ResponseEntity.status(403).body(Map.of("message", "Account is disabled. Please contact admin."));
@@ -55,8 +58,8 @@ public class AuthController {
 
     @PostMapping("/forgot-password")
     public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordRequest request) {
-        String encryptedEmail = encryptionUtil.encrypt(request.email());
-        Optional<User> userOpt = userRepository.findByEmail(encryptedEmail);
+        String email = request.email().trim();
+        Optional<User> userOpt = userRepository.findByEmail(email);
 
         if (userOpt.isEmpty()) {
             return ResponseEntity.badRequest().body("User not found.");
@@ -80,8 +83,8 @@ public class AuthController {
 
     @PostMapping("/verify-otp-reset-password")
     public ResponseEntity<?> verifyOtpAndResetPassword(@RequestBody VerifyOtpResetPasswordRequest request) {
-        String encryptedEmail = encryptionUtil.encrypt(request.email());
-        Optional<User> userOpt = userRepository.findByEmail(encryptedEmail);
+        String email = request.email().trim();
+        Optional<User> userOpt = userRepository.findByEmail(email);
 
         if (userOpt.isEmpty()) {
             return ResponseEntity.badRequest().body("User not found.");

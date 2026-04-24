@@ -21,6 +21,6 @@ public class OAuth2FailureHandler extends SimpleUrlAuthenticationFailureHandler 
         String errorMsg = exception.getLocalizedMessage();
         String encodedError = URLEncoder.encode(errorMsg, StandardCharsets.UTF_8);
         
-        getRedirectStrategy().sendRedirect(request, response, "http://localhost:3000/login?error=" + encodedError);
+        getRedirectStrategy().sendRedirect(request, response, "http://localhost:5173/login?error=" + encodedError);
     }
 }
