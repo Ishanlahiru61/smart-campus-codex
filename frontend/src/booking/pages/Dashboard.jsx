@@ -1,4 +1,7 @@
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+
+const API_BASE_URL = "http://localhost:8081/api/bookings";
 
 const adminHighlights = [
   {
@@ -21,7 +24,94 @@ const adminHighlights = [
   },
 ];
 
+const normalizeStatus = (status) => String(status || "").toUpperCase();
+
+const isToday = (value) => {
+  if (!value) return false;
+
+  const date = new Date(value);
+  const today = new Date();
+
+  return (
+    date.getFullYear() === today.getFullYear() &&
+    date.getMonth() === today.getMonth() &&
+    date.getDate() === today.getDate()
+  );
+};
+
+const formatTime = (value) => {
+  if (!value) return "-";
+
+  return new Date(value).toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
 export default function Dashboard() {
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        const response = await fetch(API_BASE_URL);
+        const data = await response.json();
+        setBookings(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error("Failed to load admin dashboard data:", error);
+        setBookings([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBookings();
+  }, []);
+
+  const dashboardStats = useMemo(() => {
+    const pending = bookings.filter(
+      (booking) => normalizeStatus(booking.status) === "PENDING"
+    );
+
+    const approved = bookings.filter(
+      (booking) => normalizeStatus(booking.status) === "APPROVED"
+    );
+
+    const rejected = bookings.filter(
+      (booking) => normalizeStatus(booking.status) === "REJECTED"
+    );
+
+    const cancelled = bookings.filter(
+      (booking) => normalizeStatus(booking.status) === "CANCELLED"
+    );
+
+    const todayBookings = bookings.filter((booking) =>
+      isToday(booking.startTime)
+    );
+
+    const todayPending = pending.filter((booking) =>
+      isToday(booking.startTime)
+    );
+
+    return {
+      total: bookings.length,
+      pending: pending.length,
+      approved: approved.length,
+      rejected: rejected.length,
+      cancelled: cancelled.length,
+      todayBookings: todayBookings.length,
+      todayPending: todayPending.length,
+    };
+  }, [bookings]);
+
+  const upcomingPending = useMemo(() => {
+    return bookings
+      .filter((booking) => normalizeStatus(booking.status) === "PENDING")
+      .sort((a, b) => new Date(a.startTime) - new Date(b.startTime))
+      .slice(0, 4);
+  }, [bookings]);
+
   return (
     <section className="booking-page booking-page--admin-dashboard">
       <div className="booking-container booking-container--wide">
@@ -36,9 +126,8 @@ export default function Dashboard() {
             </h1>
 
             <p className="booking-page-subtitle admin-dashboard-hero__subtitle">
-              Monitor booking activity, manage approval decisions, and maintain
-              a clean reservation workflow for campus resources from one focused
-              control panel.
+              Monitor booking activity, approval queues, and daily campus
+              reservations from one focused control panel.
             </p>
 
             <div className="admin-dashboard-hero__actions">
@@ -49,6 +138,100 @@ export default function Dashboard() {
                 Open Admin Bookings
               </Link>
             </div>
+
+            <div className="admin-dashboard-stats">
+              <div className="admin-dashboard-stat">
+                <span className="admin-dashboard-stat__value">
+                  {loading ? "..." : dashboardStats.pending}
+                </span>
+                <span className="admin-dashboard-stat__label">
+                  Pending Requests
+                </span>
+              </div>
+
+              <div className="admin-dashboard-stat">
+                <span className="admin-dashboard-stat__value">
+                  {loading ? "..." : dashboardStats.todayBookings}
+                </span>
+                <span className="admin-dashboard-stat__label">
+                  Bookings Today
+                </span>
+              </div>
+
+              <div className="admin-dashboard-stat">
+                <span className="admin-dashboard-stat__value">
+                  {loading ? "..." : dashboardStats.approved}
+                </span>
+                <span className="admin-dashboard-stat__label">
+                  Approved Bookings
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="admin-dashboard-overview">
+          <div className="admin-dashboard-summary-card">
+            <span className="admin-dashboard-summary-card__label">
+              Today&apos;s Pending
+            </span>
+            <strong>{loading ? "..." : dashboardStats.todayPending}</strong>
+            <p>Requests scheduled for today still waiting for a decision.</p>
+          </div>
+
+          <div className="admin-dashboard-summary-card">
+            <span className="admin-dashboard-summary-card__label">
+              Total Requests
+            </span>
+            <strong>{loading ? "..." : dashboardStats.total}</strong>
+            <p>All booking records currently available in the system.</p>
+          </div>
+
+          <div className="admin-dashboard-summary-card">
+            <span className="admin-dashboard-summary-card__label">
+              Cancelled
+            </span>
+            <strong>{loading ? "..." : dashboardStats.cancelled}</strong>
+            <p>Bookings cancelled after creation or approval workflow.</p>
+          </div>
+
+          <div className="admin-dashboard-summary-card">
+            <span className="admin-dashboard-summary-card__label">
+              Rejected
+            </span>
+            <strong>{loading ? "..." : dashboardStats.rejected}</strong>
+            <p>Requests rejected with admin decision reasons.</p>
+          </div>
+        </div>
+
+        <div className="admin-dashboard-live-panel">
+          <div>
+            <span className="booking-chip">Live Queue</span>
+            <h2>Pending Requests at a Glance</h2>
+            <p>
+              Quick view of the next pending bookings that need admin approval.
+            </p>
+          </div>
+
+          <div className="admin-dashboard-queue">
+            {upcomingPending.length === 0 ? (
+              <div className="admin-dashboard-queue__empty">
+                No pending booking requests right now.
+              </div>
+            ) : (
+              upcomingPending.map((booking) => (
+                <div key={booking.id} className="admin-dashboard-queue__item">
+                  <div>
+                    <strong>{booking.resourceId}</strong>
+                    <span>{booking.purpose}</span>
+                  </div>
+
+                  <div className="admin-dashboard-queue__time">
+                    {formatTime(booking.startTime)} - {formatTime(booking.endTime)}
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
 
@@ -65,9 +248,7 @@ export default function Dashboard() {
 
               <p className="admin-dashboard-card__text">{item.description}</p>
 
-              <span className="admin-dashboard-card__cta">
-                {item.cta} →
-              </span>
+              <span className="admin-dashboard-card__cta">{item.cta} →</span>
             </Link>
           ))}
         </div>
