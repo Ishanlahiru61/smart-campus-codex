@@ -11,28 +11,7 @@
   "react-router-dom": "^6.22.3",
   "react-icons": "^5.6.0",
   "framer-motion": "^12.38.0"
-}
-//   "dependencies": {
-// <<<<<<< HEAD
-//     "axios": "^1.15.1",
-//     "framer-motion": "^12.38.0",
-//     "jwt-decode": "^4.0.0",
-//     "lucide-react": "^1.8.0",
-//     "react": "^19.2.5",
-//     "react-dom": "^19.2.5",
-//     "react-icons": "^5.6.0",
-//     "react-router-dom": "^7.14.1"
-// =======
-//     "axios": "^1.6.8",
-//     "jwt-decode": "^4.0.0",
-//     "lucide-react": "^0.368.0",
-//     "react": "^18.2.0",
-//     "react-dom": "^18.2.0",
-//     "react-router-dom": "^6.22.3",
-//     "react-scripts": "5.0.1"
-// >>>>>>> origin/develop
-//   },
-
+},
   "devDependencies": {
     "autoprefixer": "^10.4.19",
     "postcss": "^8.4.38",
