@@ -10,19 +10,23 @@ const FACILITY_TYPES = ['LECTURE_HALL', 'LAB', 'MEETING_ROOM', 'EQUIPMENT', 'SPO
 
 function BookingModal({ facility, onClose, onBooked }) {
   const { user } = useAuth();
-  const [form, setForm] = useState({ startTime: '', endTime: '', purpose: '', attendees: 1 });
+  const [form, setForm] = useState({ bookingDate: '', startTime: '', endTime: '', purpose: '', attendees: 20 });
   const [saving, setSaving] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.startTime || !form.endTime) { toast.warning('Please select start and end times'); return; }
-    if (new Date(form.endTime) <= new Date(form.startTime)) { toast.warning('End time must be after start time'); return; }
+    if (!form.bookingDate || !form.startTime || !form.endTime) { toast.warning('Please select booking date, start time and end time'); return; }
+
+    const startDateTime = `${form.bookingDate}T${form.startTime}`;
+    const endDateTime = `${form.bookingDate}T${form.endTime}`;
+
+    if (new Date(endDateTime) <= new Date(startDateTime)) { toast.warning('End time must be after start time'); return; }
     setSaving(true);
     try {
       await userBookingAPI.create({
         resourceId: facility.id,
-        startTime: form.startTime,
-        endTime: form.endTime,
+        startTime: startDateTime,
+        endTime: endDateTime,
         purpose: form.purpose,
         attendees: parseInt(form.attendees),
       });
@@ -59,21 +63,28 @@ function BookingModal({ facility, onClose, onBooked }) {
 
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Start Date & Time *</label>
-            <input required type="datetime-local" className={inp} value={form.startTime}
-              min={new Date().toISOString().slice(0, 16)}
-              onChange={e => setForm(f => ({ ...f, startTime: e.target.value }))} />
+            <label className="block text-xs font-medium text-gray-500 mb-1">Booking Date *</label>
+            <input required type="date" className={inp} value={form.bookingDate}
+              min={new Date().toISOString().slice(0, 10)}
+              onChange={e => setForm(f => ({ ...f, bookingDate: e.target.value }))} />
           </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">End Date & Time *</label>
-            <input required type="datetime-local" className={inp} value={form.endTime}
-              min={form.startTime || new Date().toISOString().slice(0, 16)}
-              onChange={e => setForm(f => ({ ...f, endTime: e.target.value }))} />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Start Time *</label>
+              <input required type="time" step="1800" className={inp} value={form.startTime}
+                onChange={e => setForm(f => ({ ...f, startTime: e.target.value }))} />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">End Time *</label>
+              <input required type="time" step="1800" className={inp} value={form.endTime}
+                min={form.startTime || undefined}
+                onChange={e => setForm(f => ({ ...f, endTime: e.target.value }))} />
+            </div>
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-500 mb-1">Purpose *</label>
             <input required minLength={5} className={inp} value={form.purpose}
-              onChange={e => setForm(f => ({ ...f, purpose: e.target.value }))} placeholder="e.g. Project meeting" />
+              onChange={e => setForm(f => ({ ...f, purpose: e.target.value }))} placeholder="e.g. OOP Lecture" />
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-500 mb-1">Number of Attendees *</label>

@@ -49,6 +49,10 @@ jobs:
           SPRING_MAIL_PASSWORD: dummy
           FRONTEND_URL: http://localhost:5173
 
+      - name: Print test logs on failure
+        if: failure()
+        run: cat backend/target/surefire-reports/*.txt || true
+
       - name: Enforce Coverage Gate
         run: mvn -f backend/pom.xml jacoco:check
 
