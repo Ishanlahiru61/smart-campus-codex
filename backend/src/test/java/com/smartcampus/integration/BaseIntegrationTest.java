@@ -18,6 +18,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
  */
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
+@org.springframework.test.context.ActiveProfiles("test")
 public abstract class BaseIntegrationTest {
 
     // Mock out the security infrastructure so the ApplicationContext loads
