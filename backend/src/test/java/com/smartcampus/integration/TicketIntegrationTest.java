@@ -44,14 +44,16 @@ class TicketIntegrationTest extends BaseIntegrationTest {
         dto.setTitle("Broken Treadmill");
         dto.setCategory("EQUIPMENT");
         dto.setPriority(IncidentTicket.TicketPriority.MEDIUM);
+        dto.setDescription("The treadmill in the corner is making a loud noise.");
+        dto.setReportedBy("John Doe");
 
         MockMultipartFile jsonPart = new MockMultipartFile(
                 "incident", "", MediaType.APPLICATION_JSON_VALUE,
                 objectMapper.writeValueAsBytes(dto));
 
-        mockMvc.perform(multipart("/api/incidents").file(jsonPart))
+        mockMvc.perform(multipart("/incidents").file(jsonPart))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.status").value("OPEN"))
-                .andExpect(jsonPath("$.title").value("Broken Treadmill"));
+                .andExpect(jsonPath("$.data.status").value("OPEN"))
+                .andExpect(jsonPath("$.data.title").value("Broken Treadmill"));
     }
 }

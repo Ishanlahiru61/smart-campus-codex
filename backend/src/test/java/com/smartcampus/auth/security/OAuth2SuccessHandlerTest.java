@@ -64,7 +64,7 @@ class OAuth2SuccessHandlerTest {
 
         successHandler.onAuthenticationSuccess(request, response, authentication);
 
-        assertEquals("http://localhost:3000/oauth2/redirect?token=mockJwtToken", response.getRedirectedUrl());
+        assertEquals("http://localhost:5173/oauth2/redirect?token=mockJwtToken", response.getRedirectedUrl());
     }
 
     @Test
@@ -79,7 +79,7 @@ class OAuth2SuccessHandlerTest {
 
         successHandler.onAuthenticationSuccess(request, response, authentication);
 
-        assertEquals("http://localhost:3000/login?error=User+not+pre-approved+or+disabled+by+Admin.",
+        assertEquals("http://localhost:5173/login?error=User+not+pre-approved+or+disabled+by+Admin.",
                 response.getRedirectedUrl());
     }
 
@@ -96,7 +96,7 @@ class OAuth2SuccessHandlerTest {
 
         successHandler.onAuthenticationSuccess(request, response, authentication);
 
-        assertEquals("http://localhost:3000/login?error=User+not+pre-approved+or+disabled+by+Admin.",
+        assertEquals("http://localhost:5173/login?error=User+not+pre-approved+or+disabled+by+Admin.",
                 response.getRedirectedUrl());
     }
 }
