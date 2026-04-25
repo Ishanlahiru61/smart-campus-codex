@@ -18,6 +18,13 @@ export const userBookingAPI = {
     const response = await api.patch(`/api/bookings/${id}/cancel`);
     return response.data.data; // Return the updated booking entity directly
   },
+
+    // Reschedule booking (USER)
+  reschedule: async (id, payload) => {
+    const response = await api.patch(`/api/bookings/${id}/reschedule`, payload);
+    return response.data.data;
+  },
+
 };
 
 export const userIncidentAPI = {
