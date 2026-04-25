@@ -10,6 +10,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import com.smartcampus.notification.service.NotificationService;
+import com.smartcampus.notification.entity.NotificationType;
+import com.smartcampus.auth.repository.UserRepository;
+import com.smartcampus.auth.entity.User;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -20,6 +24,8 @@ public class IncidentTicketServiceImpl implements IncidentTicketService {
 
     private final IncidentTicketRepository repository;
     private final CloudinaryService cloudinaryService;
+    private final NotificationService notificationService;
+    private final UserRepository userRepository;
 
     @Override
     public List<IncidentTicket> getAllTickets() {
@@ -147,7 +153,18 @@ public class IncidentTicketServiceImpl implements IncidentTicketService {
                 .updatedAt(LocalDateTime.now())
                 .build();
 
-        return repository.save(ticket);
+        IncidentTicket savedTicket = repository.save(ticket);
+
+        userRepository.findByRolesContaining("ROLE_ADMIN").forEach(admin -> {
+            notificationService.createAndSendNotification(
+                    admin.getEmail(),
+                    "ADMIN",
+                    "New incident ticket created",
+                    NotificationType.TICKET
+            );
+        });
+
+        return savedTicket;
     }
 
     @Override
@@ -231,7 +248,19 @@ public class IncidentTicketServiceImpl implements IncidentTicketService {
             } else if (status == IncidentTicket.TicketStatus.CLOSED) {
                 ticket.setClosedAt(LocalDateTime.now());
             }
-            return repository.save(ticket);
+            IncidentTicket savedTicket = repository.save(ticket);
+            
+            // Notify Technician if assigned
+            if (savedTicket.getAssignedTechnician() != null) {
+                notificationService.createAndSendNotification(
+                        savedTicket.getAssignedTechnician(),
+                        "TECHNICIAN",
+                        "Ticket status updated to " + status.name(),
+                        NotificationType.TICKET
+                );
+            }
+            
+            return savedTicket;
         });
     }
 
@@ -241,7 +270,16 @@ public class IncidentTicketServiceImpl implements IncidentTicketService {
             ticket.setAssignedTechnician(technicianId);
             ticket.setTechnicianName(technicianName);
             ticket.setUpdatedAt(LocalDateTime.now());
-            return repository.save(ticket);
+            IncidentTicket savedTicket = repository.save(ticket);
+            
+            notificationService.createAndSendNotification(
+                    technicianId,
+                    "TECHNICIAN",
+                    "You have been assigned a new ticket",
+                    NotificationType.TICKET
+            );
+            
+            return savedTicket;
         });
     }
 
