@@ -3,7 +3,7 @@ import api from './api';
 export const bookingAPI = {
   getAll: async () => {
     const response = await api.get('/api/bookings');
-    return response.data.data; // Now returns the array inside .data
+    return response.data.data; 
   },
 
   getById: async (id) => {
@@ -17,7 +17,7 @@ export const bookingAPI = {
   },
 
   reject: async (id, reason) => {
-    // Backend BookingStatusUpdateDTO uses field "reason"
+
     const response = await api.patch(`/api/bookings/${id}/reject`, { reason });
     return response.data.data;
   },
