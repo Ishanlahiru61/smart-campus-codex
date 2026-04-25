@@ -58,6 +58,7 @@ public class BookingServiceImpl implements BookingService {
                 .build();
 
         Booking savedBooking = bookingRepository.save(booking);
+        populateFacility(savedBooking);
 
         userRepository.findByRolesContaining("ROLE_ADMIN").forEach(admin -> {
             notificationService.createAndSendNotification(
@@ -73,12 +74,17 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public List<Booking> getAllBookings() {
         var auth = SecurityContextHolder.getContext().getAuthentication();
+        List<Booking> bookings;
         if (auth != null && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
-            return bookingRepository.findAll();
+            bookings = bookingRepository.findAll();
         } else if (auth != null) {
-            return bookingRepository.findByUserId(auth.getName());
+            bookings = bookingRepository.findByUserId(auth.getName());
+        } else {
+            bookings = List.of();
         }
-        return List.of();
+        
+        bookings.forEach(this::populateFacility);
+        return bookings;
     }
 
     @Override
@@ -94,12 +100,15 @@ public class BookingServiceImpl implements BookingService {
             }
         }
 
+        populateFacility(booking);
         return booking;
     }
 
     @Override
     public List<Booking> getBookingsByUserId(String userId) {
-        return bookingRepository.findByUserId(userId);
+        List<Booking> bookings = bookingRepository.findByUserId(userId);
+        bookings.forEach(this::populateFacility);
+        return bookings;
     }
 
     @Override
@@ -125,7 +134,9 @@ public class BookingServiceImpl implements BookingService {
         booking.setPurpose(dto.getPurpose());
         booking.setAttendees(dto.getAttendees());
 
-        return bookingRepository.save(booking);
+        Booking savedBooking = bookingRepository.save(booking);
+        populateFacility(savedBooking);
+        return savedBooking;
     }
 
     @Override
@@ -138,6 +149,7 @@ public class BookingServiceImpl implements BookingService {
 
         booking.setStatus(BookingStatus.APPROVED);
         Booking savedBooking = bookingRepository.save(booking);
+        populateFacility(savedBooking);
 
         notificationService.createAndSendNotification(
                 savedBooking.getUserId(), // Assuming userId is the email
@@ -160,6 +172,7 @@ public class BookingServiceImpl implements BookingService {
         booking.setRejectionReason(dto.getReason());
 
         Booking savedBooking = bookingRepository.save(booking);
+        populateFacility(savedBooking);
 
         notificationService.createAndSendNotification(
                 savedBooking.getUserId(),
@@ -211,7 +224,9 @@ public class BookingServiceImpl implements BookingService {
         booking.setEndTime(dto.getEndTime());
         booking.setStatus(BookingStatus.PENDING);
 
-        return bookingRepository.save(booking);
+        Booking savedBooking = bookingRepository.save(booking);
+        populateFacility(savedBooking);
+        return savedBooking;
     }
 
     @Override
@@ -221,6 +236,22 @@ public class BookingServiceImpl implements BookingService {
         }
 
         bookingRepository.deleteById(bookingId);
+    }
+
+    private void populateFacility(Booking booking) {
+        if (booking.getResourceId() != null) {
+            System.out.println("Populating facility for booking: " + booking.getId() + " with resourceId: " + booking.getResourceId());
+            facilityRepository.findById(booking.getResourceId())
+                    .ifPresent(f -> {
+                        System.out.println("Found facility: " + f.getName());
+                        booking.setFacility(f);
+                    });
+            if (booking.getFacility() == null) {
+                System.out.println("Facility NOT found for resourceId: " + booking.getResourceId());
+            }
+        } else {
+            System.out.println("No resourceId for booking: " + booking.getId());
+        }
     }
 
     private void validateTimeRange(LocalDateTime startTime, LocalDateTime endTime) {
