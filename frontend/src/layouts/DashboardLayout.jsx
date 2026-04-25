@@ -38,25 +38,26 @@ export default function DashboardLayout() {
   const navigation = getNavigation();
 
   return (
-    <div className="min-h-screen bg-neutral-900 text-white flex">
+    <div className="min-h-screen bg-transparent text-slate-800 flex overflow-hidden">
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          className="fixed inset-0 bg-transparent/50 z-40 md:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
-      <aside className={`fixed md:static inset-y-0 left-0 z-50 w-64 bg-neutral-800 border-r border-neutral-700 transform transition-transform duration-200 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 flex flex-col`}>
-        <div className="h-16 flex items-center px-6 border-b border-neutral-700 justify-between">
-          <span className="text-xl font-bold bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent">Smart Campus</span>
-          <button onClick={() => setSidebarOpen(false)} className="md:hidden text-neutral-400 hover:text-white">
-            <X className="w-6 h-6" />
-          </button>
-        </div>
+      <aside className={`fixed inset-y-0 left-0 z-50 w-72 transform transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 md:static flex flex-col p-4`}>
+        <div className="flex-1 bg-white rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col overflow-hidden">
+          <div className="h-20 flex items-center px-8 border-b border-slate-50 justify-between">
+            <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Smart Campus</span>
+            <button onClick={() => setSidebarOpen(false)} className="md:hidden text-slate-400 hover:text-slate-800">
+              <X className="w-6 h-6" />
+            </button>
+          </div>
 
-        <div className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+        <div className="flex-1 overflow-y-auto py-6 px-4 space-y-2">
           {navigation.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname.startsWith(item.path);
@@ -64,51 +65,52 @@ export default function DashboardLayout() {
               <Link
                 key={item.name}
                 to={item.path}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+                className={`flex items-center gap-3 px-4 py-3 rounded-full transition-all duration-200 ${
                   isActive 
-                    ? 'bg-blue-500/10 text-blue-400' 
-                    : 'text-neutral-400 hover:bg-neutral-700/50 hover:text-white'
+                    ? 'bg-blue-50 text-blue-700 shadow-sm font-semibold' 
+                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800 font-medium'
                 }`}
               >
-                <Icon className="w-5 h-5" />
-                <span className="font-medium">{item.name}</span>
+                <Icon className={`w-5 h-5 ${isActive ? 'text-blue-600' : 'text-slate-400'}`} strokeWidth={isActive ? 2.5 : 2} />
+                <span>{item.name}</span>
               </Link>
             );
           })}
         </div>
 
-        <div className="p-4 border-t border-neutral-700">
-          <div className="flex items-center gap-3 mb-4 px-2">
-            <div className="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400 font-bold">
+        <div className="p-5 border-t border-slate-50">
+          <div className="flex items-center gap-3 mb-5 px-2">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 shadow-md flex items-center justify-center text-white font-bold text-lg">
               {user?.email?.charAt(0).toUpperCase()}
             </div>
             <div className="overflow-hidden">
-              <p className="text-sm font-medium text-white truncate">{user?.email}</p>
-              <p className="text-xs text-neutral-500">{user?.role}</p>
+              <p className="text-sm font-bold text-slate-800 truncate">{user?.email}</p>
+              <p className="text-xs font-medium text-slate-400">{user?.role}</p>
             </div>
           </div>
           <button 
             onClick={logout}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50 rounded-full transition-all"
           >
             <LogOut className="w-4 h-4" />
             Sign Out
           </button>
         </div>
+        </div>
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
         {/* Topbar */}
-        <header className="h-16 border-b border-neutral-700 bg-neutral-800 flex items-center justify-between px-4 md:px-8 shrink-0">
+        <header className="h-20 flex items-center justify-between px-6 md:px-10 shrink-0 relative z-50">
           <div className="flex items-center">
             <button 
               onClick={() => setSidebarOpen(true)}
-              className="md:hidden text-neutral-400 hover:text-white mr-4"
+              className="md:hidden text-slate-400 hover:text-slate-800 mr-4 p-2 bg-white rounded-full shadow-sm"
             >
-              <Menu className="w-6 h-6" />
+              <Menu className="w-5 h-5" />
             </button>
-            <span className="md:hidden text-lg font-bold text-white">Smart Campus</span>
+            <span className="md:hidden text-lg font-bold text-slate-800">Smart Campus</span>
           </div>
           
           <div className="flex items-center gap-4 ml-auto">
@@ -117,7 +119,7 @@ export default function DashboardLayout() {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-8">
+        <main className="flex-1 overflow-y-auto p-6 md:p-10">
           <Outlet />
         </main>
       </div>

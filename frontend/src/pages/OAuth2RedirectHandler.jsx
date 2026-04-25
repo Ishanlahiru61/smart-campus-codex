@@ -39,10 +39,10 @@ export default function OAuth2RedirectHandler() {
   }, []);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black text-white">
+    <div className="min-h-screen flex items-center justify-center bg-transparent text-gray-800">
       <div className="text-center space-y-4">
         <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto" />
-        <p className="text-neutral-400 text-sm">Completing sign-in…</p>
+        <p className="text-gray-500 text-sm">Completing sign-in…</p>
       </div>
     </div>
   );

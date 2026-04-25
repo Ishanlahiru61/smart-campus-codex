@@ -7,8 +7,8 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-white">Admin Overview</h1>
-        <p className="text-neutral-400 text-sm mt-1">System status and quick actions</p>
+        <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight">Admin Overview</h1>
+        <p className="text-slate-500 font-medium mt-2">System status and quick actions</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -45,17 +45,25 @@ export default function AdminDashboard() {
   );
 }
 
-const DashboardCard = ({ icon, title, description, link, color }) => (
-  <Link to={link}>
-    <motion.div 
-      whileHover={{ y: -5 }}
-      className="bg-neutral-800 border border-neutral-700 hover:border-neutral-500 p-6 rounded-2xl cursor-pointer transition-all h-full"
-    >
-      <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${color} bg-opacity-20`}>
-        <div className={color.replace('bg-', 'text-')}>{icon}</div>
-      </div>
-      <h3 className="text-lg font-semibold text-white mb-1">{title}</h3>
-      <p className="text-sm text-neutral-400">{description}</p>
-    </motion.div>
-  </Link>
-);
+const DashboardCard = ({ icon, title, description, link, color }) => {
+  // Translate the base color to soft bg and solid text
+  const textColor = color.replace('bg-', 'text-');
+  const bgColor = color.replace('500', '50');
+
+  return (
+    <Link to={link}>
+      <motion.div 
+        whileHover={{ y: -5 }}
+        className="bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] p-8 rounded-[24px] cursor-pointer transition-all duration-300 h-full border-0 group"
+      >
+        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-5 transition-colors duration-300 ${bgColor} group-hover:${color} group-hover:text-white`}>
+          <div className={`transition-colors duration-300 ${textColor} group-hover:text-white`}>
+            {React.cloneElement(icon, { className: 'w-7 h-7' })}
+          </div>
+        </div>
+        <h3 className="text-xl font-bold text-slate-800 mb-2">{title}</h3>
+        <p className="text-sm font-medium text-slate-500">{description}</p>
+      </motion.div>
+    </Link>
+  );
+};

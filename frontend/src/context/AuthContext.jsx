@@ -49,7 +49,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   if (isLoading) {
-    return <div className="flex h-screen items-center justify-center bg-black text-white">Loading...</div>;
+    return <div className="flex h-screen items-center justify-center bg-transparent text-gray-800">Loading...</div>;
   }
 
   return (

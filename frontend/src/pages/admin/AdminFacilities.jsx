@@ -9,9 +9,9 @@ const STATUS_OPTIONS = ['ACTIVE', 'OUT_OF_SERVICE', 'MAINTENANCE'];
 const DAYS = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
 
 const STATUS_STYLES = {
-  ACTIVE: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-  OUT_OF_SERVICE: 'bg-red-500/10 text-red-400 border-red-500/20',
-  MAINTENANCE: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+  ACTIVE: 'bg-emerald-50 text-emerald-700',
+  OUT_OF_SERVICE: 'bg-red-50 text-red-700',
+  MAINTENANCE: 'bg-amber-50 text-amber-700',
 };
 
 const STATUS_ICONS = {
@@ -22,35 +22,26 @@ const STATUS_ICONS = {
 
 function ConfirmDeleteModal({ facilityName, onConfirm, onCancel }) {
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="bg-neutral-900 border border-neutral-700 rounded-2xl p-6 w-full max-w-sm shadow-2xl"
-      >
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center shrink-0">
-            <AlertTriangle className="w-5 h-5 text-red-400" />
+    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+        className="bg-white rounded-[24px] shadow-[0_30px_60px_rgba(0,0,0,0.12)] p-8 w-full max-w-sm">
+        <div className="flex items-center gap-4 mb-5">
+          <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center shrink-0">
+            <AlertTriangle className="w-6 h-6 text-red-500" />
           </div>
           <div>
-            <h3 className="text-white font-semibold">Delete Facility</h3>
-            <p className="text-neutral-400 text-sm">This action cannot be undone.</p>
+            <h3 className="text-slate-800 font-bold text-lg">Delete Facility</h3>
+            <p className="text-slate-500 text-sm">This action cannot be undone.</p>
           </div>
         </div>
-        <p className="text-sm text-neutral-300 mb-6">
-          Are you sure you want to delete <strong className="text-white">{facilityName}</strong>?
+        <p className="text-sm text-slate-600 mb-6">
+          Are you sure you want to delete <strong className="text-slate-800">{facilityName}</strong>?
         </p>
         <div className="flex gap-3">
-          <button
-            onClick={onCancel}
-            className="flex-1 py-2 bg-neutral-800 hover:bg-neutral-700 text-white rounded-lg text-sm font-medium transition-colors"
-          >
+          <button onClick={onCancel} className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-bold transition-colors">
             Cancel
           </button>
-          <button
-            onClick={onConfirm}
-            className="flex-1 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
-          >
+          <button onClick={onConfirm} className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-bold transition-all shadow-sm flex items-center justify-center gap-2">
             <Trash2 className="w-4 h-4" /> Delete
           </button>
         </div>
@@ -151,24 +142,24 @@ function FacilityModal({ open, onClose, onSave, initial }) {
 
   if (!open) return null;
 
-  const inputCls = "w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none placeholder-neutral-500";
-  const labelCls = "block text-xs font-medium text-neutral-400 mb-1";
+  const inputCls = "w-full bg-white/50 backdrop-blur-sm shadow-sm border border-white/40 rounded-lg px-3 py-2 text-gray-800 text-sm focus:ring-2 focus:ring-blue-500 outline-none placeholder-neutral-500";
+  const labelCls = "block text-xs font-medium text-gray-500 mb-1";
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+    <div className="fixed inset-0 bg-transparent/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="bg-neutral-900 border border-neutral-700 rounded-2xl w-full max-w-2xl shadow-2xl my-4"
+        className="bg-white/70 backdrop-blur-md shadow-xl border border-white/40 rounded-2xl w-full max-w-2xl shadow-2xl my-4"
       >
         {/* Header */}
-        <div className="flex justify-between items-center px-6 py-4 border-b border-neutral-700">
+        <div className="flex justify-between items-center px-6 py-4 border-b border-white/40">
           <div className="flex items-center gap-2">
-            <Building className="w-5 h-5 text-blue-400" />
-            <h2 className="text-lg font-bold text-white">{isEdit ? 'Edit Facility' : 'Create New Facility'}</h2>
+            <Building className="w-5 h-5 text-blue-600" />
+            <h2 className="text-lg font-bold text-gray-800">{isEdit ? 'Edit Facility' : 'Create New Facility'}</h2>
           </div>
-          <button onClick={onClose} className="text-neutral-500 hover:text-white transition-colors">
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-800 transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -207,11 +198,11 @@ function FacilityModal({ open, onClose, onSave, initial }) {
             <label className={labelCls}>Facility Image</label>
             <div className="flex items-center gap-4">
               {preview && (
-                <div className="w-20 h-20 rounded-lg overflow-hidden border border-neutral-700 shrink-0">
+                <div className="w-20 h-20 rounded-lg overflow-hidden border border-white/40 shrink-0">
                   <img src={preview} alt="Preview" className="w-full h-full object-cover" />
                 </div>
               )}
-              <input type="file" accept="image/png, image/jpeg" onChange={handleImageChange} className="block w-full text-sm text-neutral-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 bg-neutral-800 border border-neutral-700 rounded-lg cursor-pointer focus:outline-none" />
+              <input type="file" accept="image/png, image/jpeg" onChange={handleImageChange} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 bg-white/50 backdrop-blur-sm shadow-sm border border-white/40 rounded-lg cursor-pointer focus:outline-none" />
             </div>
           </div>
 
@@ -253,7 +244,7 @@ function FacilityModal({ open, onClose, onSave, initial }) {
                 >
                   <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all ${form.requiresApproval ? 'left-6' : 'left-1'}`} />
                 </div>
-                <span className="text-sm text-neutral-300">Requires Approval</span>
+                <span className="text-sm text-gray-600">Requires Approval</span>
               </label>
             </div>
           </div>
@@ -290,19 +281,19 @@ function FacilityModal({ open, onClose, onSave, initial }) {
           <div>
             <div className="flex justify-between items-center mb-2">
               <label className={labelCls}>Availability Windows</label>
-              <button type="button" onClick={addWindow} className="text-xs text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+              <button type="button" onClick={addWindow} className="text-xs text-blue-600 hover:text-blue-300 transition-colors flex items-center gap-1">
                 <Plus className="w-3 h-3" /> Add Window
               </button>
             </div>
             <div className="space-y-2">
               {form.availabilityWindows.map((w, i) => (
-                <div key={i} className="flex gap-2 items-center bg-neutral-800 rounded-lg p-2 border border-neutral-700">
-                  <select className="flex-1 bg-neutral-900 border border-neutral-700 rounded px-2 py-1 text-xs text-white outline-none" value={w.dayOfWeek} onChange={e => updateWindow(i, 'dayOfWeek', e.target.value)}>
+                <div key={i} className="flex gap-2 items-center bg-white/50 backdrop-blur-sm shadow-sm rounded-lg p-2 border border-white/40">
+                  <select className="flex-1 bg-white/70 backdrop-blur-md shadow-xl border border-white/40 rounded px-2 py-1 text-xs text-gray-800 outline-none" value={w.dayOfWeek} onChange={e => updateWindow(i, 'dayOfWeek', e.target.value)}>
                     {DAYS.map(d => <option key={d} value={d}>{d}</option>)}
                   </select>
-                  <input type="time" className="bg-neutral-900 border border-neutral-700 rounded px-2 py-1 text-xs text-white outline-none" value={w.startTime} onChange={e => updateWindow(i, 'startTime', e.target.value)} />
-                  <span className="text-neutral-500 text-xs">to</span>
-                  <input type="time" className="bg-neutral-900 border border-neutral-700 rounded px-2 py-1 text-xs text-white outline-none" value={w.endTime} onChange={e => updateWindow(i, 'endTime', e.target.value)} />
+                  <input type="time" className="bg-white/70 backdrop-blur-md shadow-xl border border-white/40 rounded px-2 py-1 text-xs text-gray-800 outline-none" value={w.startTime} onChange={e => updateWindow(i, 'startTime', e.target.value)} />
+                  <span className="text-gray-400 text-xs">to</span>
+                  <input type="time" className="bg-white/70 backdrop-blur-md shadow-xl border border-white/40 rounded px-2 py-1 text-xs text-gray-800 outline-none" value={w.endTime} onChange={e => updateWindow(i, 'endTime', e.target.value)} />
                   <button type="button" onClick={() => removeWindow(i)} className="text-red-400 hover:text-red-300">
                     <X className="w-4 h-4" />
                   </button>
@@ -316,8 +307,8 @@ function FacilityModal({ open, onClose, onSave, initial }) {
         </form>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-neutral-700 flex gap-3 justify-end">
-          <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium bg-neutral-800 hover:bg-neutral-700 text-white rounded-lg transition-colors">
+        <div className="px-6 py-4 border-t border-white/40 flex gap-3 justify-end">
+          <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium bg-white/50 backdrop-blur-sm shadow-sm hover:bg-white/80 text-gray-800 rounded-lg transition-colors">
             Cancel
           </button>
           <button
@@ -419,19 +410,19 @@ export default function AdminFacilities() {
   const openEdit = (f) => { setEditing(f); setModalOpen(true); };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-            <Building className="w-6 h-6 text-blue-400" />
+          <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight flex items-center gap-3">
+            <Building className="w-7 h-7 text-blue-600" />
             Facility Management
           </h1>
-          <p className="text-neutral-400 text-sm mt-1">Create, edit, and manage campus facilities</p>
+          <p className="text-slate-500 font-medium mt-2">Create, edit, and manage campus facilities</p>
         </div>
         <button
           onClick={openCreate}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors font-medium text-sm shrink-0"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full flex items-center gap-2 transition-all font-bold text-sm shrink-0 shadow-md shadow-blue-500/20"
         >
           <Plus className="w-4 h-4" /> Add Facility
         </button>
@@ -439,133 +430,104 @@ export default function AdminFacilities() {
 
       {/* Stats Bar */}
       {stats && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-5">
           {[
-            { label: 'Total', value: stats.totalFacilities ?? facilities.length, color: 'text-blue-400' },
-            { label: 'Active', value: stats.activeFacilities ?? facilities.filter(f => f.status === 'ACTIVE').length, color: 'text-emerald-400' },
-            { label: 'Maintenance', value: stats.maintenanceFacilities ?? facilities.filter(f => f.status === 'MAINTENANCE').length, color: 'text-amber-400' },
-            { label: 'Out of Service', value: stats.outOfServiceFacilities ?? facilities.filter(f => f.status === 'OUT_OF_SERVICE').length, color: 'text-red-400' },
+            { label: 'Total', value: stats.totalFacilities ?? facilities.length, icon: '🏛️', color: 'text-slate-800' },
+            { label: 'Active', value: stats.activeFacilities ?? facilities.filter(f => f.status === 'ACTIVE').length, icon: '✅', color: 'text-emerald-700' },
+            { label: 'Maintenance', value: stats.maintenanceFacilities ?? facilities.filter(f => f.status === 'MAINTENANCE').length, icon: '🔧', color: 'text-amber-700' },
+            { label: 'Out of Service', value: stats.outOfServiceFacilities ?? facilities.filter(f => f.status === 'OUT_OF_SERVICE').length, icon: '🚫', color: 'text-red-700' },
           ].map(s => (
-            <div key={s.label} className="bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-3">
-              <p className="text-neutral-500 text-xs">{s.label}</p>
-              <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
+            <div key={s.label} className="bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-[24px] p-6">
+              <span className="text-2xl mb-3 block">{s.icon}</span>
+              <p className={`text-4xl font-extrabold ${s.color} mb-1`}>{s.value}</p>
+              <p className="text-sm font-medium text-slate-500">{s.label}</p>
             </div>
           ))}
         </div>
       )}
 
       {/* Filters */}
-      <div className="bg-neutral-800 border border-neutral-700 rounded-xl p-4 flex flex-col sm:flex-row gap-3 items-center">
-        <div className="relative flex-1 w-full">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
-          <input
-            type="text"
-            placeholder="Search by name or location..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="w-full bg-neutral-900 border border-neutral-700 rounded-lg pl-9 pr-4 py-2 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-        <select
-          value={filterType}
-          onChange={e => setFilterType(e.target.value)}
-          className="bg-neutral-900 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-44"
-        >
+      <div className="bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-[24px] p-6 flex flex-col sm:flex-row gap-4 items-center justify-end">
+        <select value={filterType} onChange={e => setFilterType(e.target.value)}
+          className="bg-slate-50 border-0 rounded-xl px-4 py-3 text-sm text-slate-700 font-semibold outline-none w-full sm:w-48">
           <option value="">All Types</option>
           {FACILITY_TYPES.map(t => <option key={t} value={t}>{t.replace('_', ' ')}</option>)}
         </select>
-        <select
-          value={filterStatus}
-          onChange={e => setFilterStatus(e.target.value)}
-          className="bg-neutral-900 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-40"
-        >
+        <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
+          className="bg-slate-50 border-0 rounded-xl px-4 py-3 text-sm text-slate-700 font-semibold outline-none w-full sm:w-44">
           <option value="">All Statuses</option>
           {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s.replace('_', ' ')}</option>)}
         </select>
-        <p className="text-sm text-neutral-500 shrink-0">{filtered.length} of {facilities.length}</p>
+        <p className="text-sm font-semibold text-slate-400 shrink-0">{filtered.length} of {facilities.length}</p>
       </div>
 
       {/* Table */}
-      <div className="bg-neutral-800 border border-neutral-700 rounded-xl overflow-hidden">
+      <div className="bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-[24px] overflow-hidden">
         {isLoading ? (
           <div className="flex justify-center items-center py-20">
             <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
           </div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-16 text-neutral-500">
-            <Building className="w-10 h-10 mx-auto mb-3 opacity-30" />
-            <p>No facilities found.</p>
-            <button onClick={openCreate} className="mt-3 text-blue-400 hover:text-blue-300 text-sm underline">Create the first one</button>
+          <div className="text-center py-16 text-slate-400">
+            <Building className="w-12 h-12 mx-auto mb-3 opacity-20" />
+            <p className="font-semibold">No facilities found.</p>
+            <button onClick={openCreate} className="mt-3 text-blue-600 hover:text-blue-700 text-sm font-bold underline">Create the first one</button>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
-              <thead className="bg-neutral-900/50 text-neutral-400 border-b border-neutral-700">
-                <tr>
-                  <th className="px-5 py-3 font-medium">Facility</th>
-                  <th className="px-5 py-3 font-medium">Type</th>
-                  <th className="px-5 py-3 font-medium">Capacity</th>
-                  <th className="px-5 py-3 font-medium">Status</th>
-                  <th className="px-5 py-3 font-medium">Cost/hr</th>
-                  <th className="px-5 py-3 font-medium text-right">Actions</th>
+              <thead>
+                <tr className="border-b border-slate-100">
+                  <th className="px-8 py-5 text-xs font-bold text-slate-400 uppercase tracking-wider">Facility</th>
+                  <th className="px-8 py-5 text-xs font-bold text-slate-400 uppercase tracking-wider">Type</th>
+                  <th className="px-8 py-5 text-xs font-bold text-slate-400 uppercase tracking-wider">Capacity</th>
+                  <th className="px-8 py-5 text-xs font-bold text-slate-400 uppercase tracking-wider">Status</th>
+                  <th className="px-8 py-5 text-xs font-bold text-slate-400 uppercase tracking-wider">Cost/hr</th>
+                  <th className="px-8 py-5 text-xs font-bold text-slate-400 uppercase tracking-wider text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-neutral-700">
+              <tbody>
                 {filtered.map(f => (
-                  <motion.tr
-                    key={f.id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="hover:bg-neutral-700/20 transition-colors"
-                  >
-                    <td className="px-5 py-3">
-                      <div className="font-medium text-white">{f.name}</div>
-                      <div className="text-xs text-neutral-500">{f.location}</div>
+                  <motion.tr key={f.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                    className="hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0">
+                    <td className="px-8 py-5">
+                      <div className="font-bold text-slate-800">{f.name}</div>
+                      <div className="text-xs font-medium text-slate-400 mt-0.5">{f.location}</div>
                     </td>
-                    <td className="px-5 py-3">
-                      <span className="text-xs bg-neutral-700 text-neutral-300 px-2 py-1 rounded-full">
+                    <td className="px-8 py-5">
+                      <span className="text-xs font-bold bg-slate-100 text-slate-600 px-3 py-1.5 rounded-full">
                         {(f.type || '').replace('_', ' ')}
                       </span>
                     </td>
-                    <td className="px-5 py-3 text-neutral-300">{f.capacity}</td>
-                    <td className="px-5 py-3">
+                    <td className="px-8 py-5 font-bold text-slate-700">{f.capacity}</td>
+                    <td className="px-8 py-5">
                       <div className="relative group inline-block">
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border cursor-pointer ${STATUS_STYLES[f.status] || ''}`}>
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold cursor-pointer ${STATUS_STYLES[f.status] || ''}`}>
                           {STATUS_ICONS[f.status]}
                           {(f.status || '').replace('_', ' ')}
                           <ChevronDown className="w-3 h-3 opacity-60" />
                         </span>
-                        <div className="hidden group-hover:block absolute top-full left-0 mt-1 bg-neutral-900 border border-neutral-700 rounded-lg shadow-xl z-10 py-1 min-w-[150px]">
+                        <div className="hidden group-hover:block absolute top-full left-0 mt-1 bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] z-10 py-2 min-w-[160px] overflow-hidden">
                           {STATUS_OPTIONS.filter(s => s !== f.status).map(s => (
-                            <button
-                              key={s}
-                              onClick={() => handleStatusChange(f.id, s)}
-                              className={`w-full text-left px-3 py-1.5 text-xs hover:bg-neutral-700 transition-colors ${STATUS_STYLES[s]} border-0 bg-transparent`}
-                            >
+                            <button key={s} onClick={() => handleStatusChange(f.id, s)}
+                              className={`w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 transition-colors ${STATUS_STYLES[s]} border-0 bg-transparent`}>
                               {s.replace('_', ' ')}
                             </button>
                           ))}
                         </div>
                       </div>
                     </td>
-                    <td className="px-5 py-3 text-neutral-300">
-                      {f.costPerHour != null ? `LKR ${f.costPerHour}` : <span className="text-neutral-600">Free</span>}
+                    <td className="px-8 py-5 font-semibold text-slate-600">
+                      {f.costPerHour != null ? `LKR ${f.costPerHour}` : <span className="text-emerald-600 font-bold">Free</span>}
                     </td>
-                    <td className="px-5 py-3 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => openEdit(f)}
-                          className="p-1.5 text-neutral-400 hover:text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors"
-                          title="Edit"
-                        >
+                    <td className="px-8 py-5 text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <button onClick={() => openEdit(f)}
+                          className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors" title="Edit">
                           <Edit className="w-4 h-4" />
                         </button>
-                        <button
-                          onClick={() => setConfirmDelete({ id: f.id, name: f.name })}
-                          disabled={deletingId === f.id}
-                          className="p-1.5 text-neutral-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors disabled:opacity-50"
-                          title="Delete"
-                        >
+                        <button onClick={() => setConfirmDelete({ id: f.id, name: f.name })} disabled={deletingId === f.id}
+                          className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors disabled:opacity-50" title="Delete">
                           {deletingId === f.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                         </button>
                       </div>

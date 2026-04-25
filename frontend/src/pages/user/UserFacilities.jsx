@@ -36,53 +36,53 @@ function BookingModal({ facility, onClose, onBooked }) {
     }
   };
 
-  const inp = "w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500 placeholder-neutral-500";
+  const inp = "w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-blue-500 placeholder-slate-400 transition-all";
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-        className="bg-neutral-900 border border-neutral-700 rounded-2xl p-6 w-full max-w-md shadow-2xl">
-        <div className="flex justify-between items-center mb-4">
+        className="bg-white rounded-[24px] shadow-[0_30px_60px_rgba(0,0,0,0.12)] p-8 w-full max-w-md">
+        <div className="flex justify-between items-center mb-5">
           <div>
-            <h3 className="text-lg font-bold text-white">Book Facility</h3>
-            <p className="text-sm text-blue-400">{facility.name}</p>
+            <h3 className="text-xl font-bold text-slate-800">Book Facility</h3>
+            <p className="text-sm font-semibold text-blue-600 mt-0.5">{facility.name}</p>
           </div>
-          <button onClick={onClose} className="text-neutral-500 hover:text-white"><X className="w-5 h-5" /></button>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-800 p-2 hover:bg-slate-100 rounded-full transition-colors"><X className="w-5 h-5" /></button>
         </div>
 
-        <div className="bg-neutral-800 rounded-xl p-3 mb-4 text-xs text-neutral-400 space-y-1">
-          <p>📍 {facility.location}</p>
-          <p>👥 Capacity: {facility.capacity}</p>
-          {facility.costPerHour && <p>💰 LKR {facility.costPerHour}/hr</p>}
-          {facility.requiresApproval && <p className="text-amber-400">⚠ This facility requires admin approval</p>}
+        <div className="bg-slate-50 rounded-2xl p-4 mb-5 space-y-1.5">
+          <p className="text-sm font-medium text-slate-600">📍 {facility.location}</p>
+          <p className="text-sm font-medium text-slate-600">👥 Capacity: {facility.capacity}</p>
+          {facility.costPerHour && <p className="text-sm font-medium text-slate-600">💰 LKR {facility.costPerHour}/hr</p>}
+          {facility.requiresApproval && <p className="text-sm font-semibold text-amber-600">⚠ This facility requires admin approval</p>}
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <label className="block text-xs font-medium text-neutral-400 mb-1">Start Date & Time *</label>
+            <label className="block text-xs font-medium text-gray-500 mb-1">Start Date & Time *</label>
             <input required type="datetime-local" className={inp} value={form.startTime}
               min={new Date().toISOString().slice(0, 16)}
               onChange={e => setForm(f => ({ ...f, startTime: e.target.value }))} />
           </div>
           <div>
-            <label className="block text-xs font-medium text-neutral-400 mb-1">End Date & Time *</label>
+            <label className="block text-xs font-medium text-gray-500 mb-1">End Date & Time *</label>
             <input required type="datetime-local" className={inp} value={form.endTime}
               min={form.startTime || new Date().toISOString().slice(0, 16)}
               onChange={e => setForm(f => ({ ...f, endTime: e.target.value }))} />
           </div>
           <div>
-            <label className="block text-xs font-medium text-neutral-400 mb-1">Purpose *</label>
+            <label className="block text-xs font-medium text-gray-500 mb-1">Purpose *</label>
             <input required minLength={5} className={inp} value={form.purpose}
               onChange={e => setForm(f => ({ ...f, purpose: e.target.value }))} placeholder="e.g. Project meeting" />
           </div>
           <div>
-            <label className="block text-xs font-medium text-neutral-400 mb-1">Number of Attendees *</label>
+            <label className="block text-xs font-medium text-gray-500 mb-1">Number of Attendees *</label>
             <input required type="number" min={1} max={facility.capacity} className={inp} value={form.attendees}
               onChange={e => setForm(f => ({ ...f, attendees: e.target.value }))} />
           </div>
           <div className="flex gap-3 pt-2">
-            <button type="button" onClick={onClose} className="flex-1 py-2 bg-neutral-800 hover:bg-neutral-700 text-white rounded-lg text-sm font-medium transition-colors">Cancel</button>
-            <button type="submit" disabled={saving} className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors flex justify-center items-center gap-2 disabled:opacity-50">
+            <button type="button" onClick={onClose} className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-bold transition-colors">Cancel</button>
+            <button type="submit" disabled={saving} className="flex-1 py-3 bg-slate-900 hover:bg-blue-600 text-white rounded-xl text-sm font-bold transition-all shadow-md flex justify-center items-center gap-2 disabled:opacity-50">
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Calendar className="w-4 h-4" />} Book Now
             </button>
           </div>
@@ -118,78 +118,91 @@ export default function UserFacilities() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-          <Building className="w-6 h-6 text-emerald-400" /> Browse Facilities
+        <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight flex items-center gap-3">
+          <Building className="w-7 h-7 text-emerald-500" /> Browse Facilities
         </h1>
-        <p className="text-neutral-400 text-sm mt-1">Find and book available campus facilities</p>
+        <p className="text-slate-500 font-medium mt-2">Find and book available campus facilities</p>
       </div>
 
       {/* Filters */}
-      <div className="bg-neutral-800 border border-neutral-700 rounded-xl p-4 flex flex-col sm:flex-row gap-3 items-center">
-        <div className="relative flex-1 w-full">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
-          <input type="text" placeholder="Search by name or location..."
-            value={search} onChange={e => setSearch(e.target.value)}
-            className="w-full bg-neutral-900 border border-neutral-700 rounded-lg pl-9 pr-4 py-2 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500" />
+      <div className="bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-[24px] p-6 flex flex-col sm:flex-row gap-4 items-center justify-end">
+        <div className="relative flex-1 w-full max-w-md mr-auto">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Search by name or location..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="w-full bg-slate-50 border-0 rounded-xl pl-11 pr-4 py-3 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-blue-500 placeholder-slate-400 font-medium transition-all"
+          />
         </div>
         <select value={filterType} onChange={e => setFilterType(e.target.value)}
-          className="bg-neutral-900 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white outline-none w-full sm:w-44">
-          <option value="">All Types</option>
+          className="bg-slate-50 border-0 rounded-xl px-4 py-3 text-sm text-slate-700 font-bold outline-none w-full sm:w-56">
+          <option value="">All Facility Types</option>
           {FACILITY_TYPES.map(t => <option key={t} value={t}>{t.replace('_', ' ')}</option>)}
         </select>
-        <p className="text-sm text-neutral-500 shrink-0">{filtered.length} facilities</p>
+        <p className="text-sm font-semibold text-slate-400 shrink-0">{filtered.length} found</p>
       </div>
 
       {isLoading ? (
-        <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-blue-500" /></div>
+        <div className="flex justify-center py-20"><Loader2 className="w-10 h-10 animate-spin text-blue-500" /></div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-16 text-neutral-500">
-          <Building className="w-10 h-10 mx-auto mb-3 opacity-30" /><p>No active facilities found.</p>
+        <div className="text-center py-24 bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-[24px] text-slate-400 border border-dashed border-slate-200">
+          <Building className="w-16 h-16 mx-auto mb-4 opacity-10" />
+          <p className="text-xl font-extrabold text-slate-800">No facilities found</p>
+          <p className="text-sm font-medium opacity-60 mt-2">Try adjusting your search or filters.</p>
         </div>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {filtered.map(f => (
             <motion.div key={f.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-              className="bg-neutral-800 border border-neutral-700 hover:border-blue-500/30 rounded-xl overflow-hidden flex flex-col transition-colors group">
+              className="bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] hover:-translate-y-2 rounded-[24px] overflow-hidden flex flex-col transition-all duration-300 group border-0">
               
-              <div className="h-40 bg-neutral-900 relative">
+              <div className="h-48 bg-slate-100 relative">
                 {f.imageUrl ? (
                   <img src={f.imageUrl} alt={f.name} className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center opacity-30">
-                    <Building className="w-12 h-12 text-neutral-500" />
+                  <div className="w-full h-full flex items-center justify-center">
+                    <Building className="w-12 h-12 text-slate-300" />
                   </div>
                 )}
-                <div className="absolute top-3 right-3 flex gap-2">
-                  <span className="text-xs bg-neutral-900/80 backdrop-blur text-neutral-300 px-2 py-1 rounded-full border border-neutral-700">{(f.type || '').replace('_', ' ')}</span>
-                  {f.requiresApproval && <span className="text-xs bg-amber-500/20 backdrop-blur text-amber-400 px-2 py-1 rounded-full border border-amber-500/30">Approval needed</span>}
+                <div className="absolute top-4 left-4 flex gap-2">
+                  <span className="text-xs font-bold bg-white text-slate-700 px-3 py-1.5 rounded-full shadow-sm">{(f.type || '').replace('_', ' ')}</span>
+                  {f.requiresApproval && <span className="text-xs font-bold bg-amber-500 text-white px-3 py-1.5 rounded-full shadow-sm">Approval needed</span>}
                 </div>
               </div>
 
-              <div className="p-5 flex flex-col flex-1">
-                <h3 className="font-semibold text-white text-base group-hover:text-blue-400 transition-colors mb-1">{f.name}</h3>
-                <p className="text-xs text-neutral-500 mb-2">📍 {f.location}</p>
-                {f.description && <p className="text-xs text-neutral-400 mb-3 line-clamp-2">{f.description}</p>}
+                <div className="p-6 flex flex-col flex-1">
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="text-xl font-extrabold text-slate-800 group-hover:text-blue-600 transition-colors">{f.name}</h3>
+                </div>
+                <p className="text-sm font-bold text-slate-400 mb-4 flex items-center gap-1.5">📍 {f.location}</p>
+                {f.description && <p className="text-sm text-slate-500 mb-4 line-clamp-2 leading-relaxed">{f.description}</p>}
 
-                <div className="flex flex-wrap gap-1 mb-3">
+                <div className="flex flex-wrap gap-2 mb-4">
                   {(f.amenities || []).slice(0, 3).map(a => (
-                    <span key={a} className="text-xs bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded-full">{a}</span>
+                    <span key={a} className="text-xs font-semibold bg-slate-50 text-slate-600 px-2.5 py-1 rounded-md">{a}</span>
                   ))}
-                  {(f.amenities || []).length > 3 && <span className="text-xs text-neutral-600">+{f.amenities.length - 3} more</span>}
+                  {(f.amenities || []).length > 3 && <span className="text-xs font-semibold text-slate-400 self-center">+{f.amenities.length - 3} more</span>}
                 </div>
 
-                <div className="mt-auto flex items-center justify-between pt-3 border-t border-neutral-700/50">
-                  <div className="text-xs text-neutral-400">
-                    <span className="text-white font-medium">Cap: {f.capacity}</span>
-                    {f.costPerHour ? <span className="ml-2 text-blue-400">LKR {f.costPerHour}/hr</span> : <span className="ml-2 text-emerald-400">Free</span>}
+                <div className="mt-auto flex items-center justify-between pt-4">
+                  <div className="flex flex-col">
+                    <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Capacity</span>
+                    <span className="text-sm font-bold text-slate-800">{f.capacity} People</span>
                   </div>
-                  <button onClick={() => setBooking(f)}
-                    className="flex items-center gap-1 text-xs font-medium bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg transition-colors">
-                    <Calendar className="w-3.5 h-3.5" /> Book
-                  </button>
+                  <div className="flex flex-col items-end">
+                    <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Cost</span>
+                    {f.costPerHour ? <span className="text-sm font-bold text-blue-600">LKR {f.costPerHour}/hr</span> : <span className="text-sm font-bold text-emerald-500">Free</span>}
+                  </div>
                 </div>
+                
+                <button onClick={() => setBooking(f)}
+                  className="mt-5 w-full flex items-center justify-center gap-2 text-sm font-bold bg-slate-900 hover:bg-blue-600 text-white px-4 py-3 rounded-xl transition-all shadow-md">
+                  <Calendar className="w-4 h-4" /> Book Facility
+                </button>
               </div>
             </motion.div>
           ))}

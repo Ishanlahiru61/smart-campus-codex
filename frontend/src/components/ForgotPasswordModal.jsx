@@ -51,44 +51,44 @@ export default function ForgotPasswordModal({ open, onClose }) {
 
   if (!open) return null;
 
-  const inpCls = "w-full pl-10 pr-4 py-2.5 bg-neutral-800 border border-neutral-700 rounded-xl text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all";
+  const inpCls = "w-full pl-11 pr-4 py-3.5 bg-slate-50 border-0 rounded-2xl text-slate-800 font-medium focus:ring-2 focus:ring-blue-500/20 focus:bg-white outline-none transition-all placeholder:text-slate-400";
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
       <motion.div 
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden"
+        className="bg-white rounded-[32px] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.12)] w-full max-w-md overflow-hidden relative"
       >
-        <div className="flex justify-between items-center px-6 py-4 border-b border-neutral-800">
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <KeyRound className="w-5 h-5 text-blue-400" /> Reset Password
+        <div className="flex justify-between items-center px-8 py-6 border-b border-slate-50">
+          <h2 className="text-xl font-extrabold text-slate-800 tracking-tight flex items-center gap-3">
+            <KeyRound className="w-6 h-6 text-blue-600" /> Reset Password
           </h2>
-          <button onClick={handleClose} className="text-neutral-500 hover:text-white transition-colors">
+          <button onClick={handleClose} className="text-slate-400 hover:text-slate-800 p-2 hover:bg-slate-50 rounded-full transition-all">
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="p-6">
+        <div className="p-8">
           <AnimatePresence mode="wait">
             {step === 1 && (
               <motion.form 
                 key="step1"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
                 onSubmit={handleSendOtp} 
-                className="space-y-4"
+                className="space-y-6"
               >
-                <p className="text-sm text-neutral-400 mb-4">
-                  Enter your registered email address. We'll send you a 6-digit OTP to reset your password.
+                <p className="text-sm font-medium text-slate-500 leading-relaxed bg-blue-50/50 p-4 rounded-2xl">
+                  Enter your registered email address. We'll send you a <span className="text-blue-600 font-bold">6-digit OTP</span> to reset your password.
                 </p>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1.5">Email Address</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Mail className="h-5 w-5 text-neutral-500" />
+                  <label className="block text-[10px] font-black tracking-widest text-slate-400 uppercase mb-2 ml-1">Email Address</label>
+                  <div className="relative group">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none group-focus-within:text-blue-500 transition-colors">
+                      <Mail className="h-5 w-5 text-slate-300" />
                     </div>
                     <input 
                       type="email" 
@@ -96,14 +96,14 @@ export default function ForgotPasswordModal({ open, onClose }) {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className={inpCls}
-                      placeholder="name@example.com"
+                      placeholder="name@university.edu"
                     />
                   </div>
                 </div>
                 <button 
                   type="submit" 
                   disabled={isLoading || !email}
-                  className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium flex items-center justify-center gap-2 transition-colors disabled:opacity-50 mt-6"
+                  className="w-full py-4 px-6 bg-slate-900 hover:bg-blue-600 text-white rounded-[20px] font-black tracking-widest uppercase text-sm shadow-xl shadow-slate-900/10 hover:shadow-blue-500/20 flex items-center justify-center gap-3 transition-all duration-300 disabled:opacity-50"
                 >
                   {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
                     <>Send OTP <ArrowRight className="w-4 h-4" /></>
@@ -115,22 +115,22 @@ export default function ForgotPasswordModal({ open, onClose }) {
             {step === 2 && (
               <motion.form 
                 key="step2"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
                 onSubmit={handleResetPassword} 
-                className="space-y-4"
+                className="space-y-6"
               >
-                <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 flex gap-3 text-sm text-blue-400 mb-4">
+                <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 flex gap-3 text-sm text-emerald-700 font-bold">
                   <CheckCircle className="w-5 h-5 shrink-0" />
-                  <p>OTP sent to <strong>{email}</strong>. Please check your inbox.</p>
+                  <p>OTP sent to <span className="underline">{email}</span>. Please check your inbox.</p>
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1.5">6-Digit OTP</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <KeyRound className="h-5 w-5 text-neutral-500" />
+                  <label className="block text-[10px] font-black tracking-widest text-slate-400 uppercase mb-2 ml-1">6-Digit OTP</label>
+                  <div className="relative group">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none group-focus-within:text-blue-500 transition-colors">
+                      <KeyRound className="h-5 w-5 text-slate-300" />
                     </div>
                     <input 
                       type="text" 
@@ -145,10 +145,10 @@ export default function ForgotPasswordModal({ open, onClose }) {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1.5">New Password</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Lock className="h-5 w-5 text-neutral-500" />
+                  <label className="block text-[10px] font-black tracking-widest text-slate-400 uppercase mb-2 ml-1">New Password</label>
+                  <div className="relative group">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none group-focus-within:text-blue-500 transition-colors">
+                      <Lock className="h-5 w-5 text-slate-300" />
                     </div>
                     <input 
                       type="password" 
@@ -165,9 +165,9 @@ export default function ForgotPasswordModal({ open, onClose }) {
                 <button 
                   type="submit" 
                   disabled={isLoading || !otp || !newPassword}
-                  className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium flex items-center justify-center gap-2 transition-colors disabled:opacity-50 mt-6"
+                  className="w-full py-4 px-6 bg-emerald-600 hover:bg-emerald-700 text-white rounded-[20px] font-black tracking-widest uppercase text-sm shadow-xl shadow-emerald-500/20 flex items-center justify-center gap-3 transition-all duration-300 disabled:opacity-50"
                 >
-                  {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Reset Password'}
+                  {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Update Password'}
                 </button>
               </motion.form>
             )}
