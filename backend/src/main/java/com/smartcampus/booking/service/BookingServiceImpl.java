@@ -15,6 +15,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import com.smartcampus.notification.service.NotificationService;
+import com.smartcampus.notification.entity.NotificationType;
+import com.smartcampus.auth.repository.UserRepository;
+import com.smartcampus.auth.entity.User;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -24,6 +29,8 @@ public class BookingServiceImpl implements BookingService {
 
     private final BookingRepository bookingRepository;
     private final FacilityRepository facilityRepository;
+    private final NotificationService notificationService;
+    private final UserRepository userRepository;
 
     @Override
     public Booking createBooking(BookingRequestDTO dto) {
@@ -34,8 +41,7 @@ public class BookingServiceImpl implements BookingService {
                 dto.getResourceId(),
                 dto.getStartTime(),
                 dto.getEndTime(),
-                null
-        );
+                null);
 
         String currentUser = SecurityContextHolder.getContext().getAuthentication().getName();
 
@@ -51,7 +57,17 @@ public class BookingServiceImpl implements BookingService {
                 .updatedAt(LocalDateTime.now())
                 .build();
 
-        return bookingRepository.save(booking);
+        Booking savedBooking = bookingRepository.save(booking);
+
+        userRepository.findByRolesContaining("ROLE_ADMIN").forEach(admin -> {
+            notificationService.createAndSendNotification(
+                    admin.getEmail(),
+                    "ADMIN",
+                    "New booking request requires approval",
+                    NotificationType.BOOKING);
+        });
+
+        return savedBooking;
     }
 
     @Override
@@ -101,8 +117,7 @@ public class BookingServiceImpl implements BookingService {
                 dto.getResourceId(),
                 dto.getStartTime(),
                 dto.getEndTime(),
-                bookingId
-        );
+                bookingId);
 
         booking.setResourceId(dto.getResourceId());
         booking.setStartTime(dto.getStartTime());
@@ -122,7 +137,15 @@ public class BookingServiceImpl implements BookingService {
         }
 
         booking.setStatus(BookingStatus.APPROVED);
-        return bookingRepository.save(booking);
+        Booking savedBooking = bookingRepository.save(booking);
+
+        notificationService.createAndSendNotification(
+                savedBooking.getUserId(), // Assuming userId is the email
+                "USER",
+                "Your booking has been approved",
+                NotificationType.BOOKING);
+
+        return savedBooking;
     }
 
     @Override
@@ -136,7 +159,15 @@ public class BookingServiceImpl implements BookingService {
         booking.setStatus(BookingStatus.REJECTED);
         booking.setRejectionReason(dto.getReason());
 
-        return bookingRepository.save(booking);
+        Booking savedBooking = bookingRepository.save(booking);
+
+        notificationService.createAndSendNotification(
+                savedBooking.getUserId(),
+                "USER",
+                "Your booking has been rejected",
+                NotificationType.BOOKING);
+
+        return savedBooking;
     }
 
     @Override
@@ -174,8 +205,7 @@ public class BookingServiceImpl implements BookingService {
                 booking.getResourceId(),
                 dto.getStartTime(),
                 dto.getEndTime(),
-                bookingId
-        );
+                bookingId);
 
         booking.setStartTime(dto.getStartTime());
         booking.setEndTime(dto.getEndTime());
@@ -217,14 +247,9 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
-    private boolean isWithinAvailabilityWindow(LocalDateTime start, LocalDateTime end, Facility.AvailabilityWindow window) {
+    private boolean isWithinAvailabilityWindow(LocalDateTime start, LocalDateTime end,
+            Facility.AvailabilityWindow window) {
         String dayOfWeek = start.getDayOfWeek().name();
-        if (!dayOfWeek.equalsIgnoreCase(window.getDayOfWeek())) {
-            return false;
-        }
-        if (!end.getDayOfWeek().name().equalsIgnoreCase(window.getDayOfWeek())) {
-            return false;
-        }
 
         java.time.LocalTime windowStart = java.time.LocalTime.parse(window.getStartTime());
         java.time.LocalTime windowEnd = java.time.LocalTime.parse(window.getEndTime());
@@ -232,13 +257,24 @@ public class BookingServiceImpl implements BookingService {
         java.time.LocalTime bookingStart = start.toLocalTime();
         java.time.LocalTime bookingEnd = end.toLocalTime();
 
-        return !bookingStart.isBefore(windowStart) && !bookingEnd.isAfter(windowEnd);
+        System.out.println(
+                "Checking window: " + window.getDayOfWeek() + " " + window.getStartTime() + "-" + window.getEndTime());
+        System.out.println("Booking start: " + start.getDayOfWeek() + " " + bookingStart);
+        System.out.println("Booking end: " + end.getDayOfWeek() + " " + bookingEnd);
+
+        boolean isDayMatch = dayOfWeek.equalsIgnoreCase(window.getDayOfWeek())
+                && end.getDayOfWeek().name().equalsIgnoreCase(window.getDayOfWeek());
+        boolean isTimeMatch = !bookingStart.isBefore(windowStart) && !bookingEnd.isAfter(windowEnd);
+
+        System.out.println("isDayMatch: " + isDayMatch + ", isTimeMatch: " + isTimeMatch);
+
+        return isDayMatch && isTimeMatch;
     }
 
     private void checkForConflicts(String resourceId,
-                                   LocalDateTime newStart,
-                                   LocalDateTime newEnd,
-                                   String currentBookingId) {
+            LocalDateTime newStart,
+            LocalDateTime newEnd,
+            String currentBookingId) {
 
         List<Booking> bookings = bookingRepository.findByResourceId(resourceId);
 
@@ -247,10 +283,8 @@ public class BookingServiceImpl implements BookingService {
                         || booking.getStatus() == BookingStatus.APPROVED)
                 .filter(booking -> currentBookingId == null
                         || !booking.getId().equals(currentBookingId))
-                .anyMatch(booking ->
-                        newStart.isBefore(booking.getEndTime())
-                                && newEnd.isAfter(booking.getStartTime())
-                );
+                .anyMatch(booking -> newStart.isBefore(booking.getEndTime())
+                        && newEnd.isAfter(booking.getStartTime()));
 
         if (hasConflict) {
             throw new InvalidBookingException("Time slot already booked");

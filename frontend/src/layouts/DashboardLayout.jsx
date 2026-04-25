@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Menu, X, Home, Users, Building, Calendar, AlertTriangle, Wrench, LogOut } from 'lucide-react';
+import NotificationBell from '../components/common/NotificationBell';
 
 export default function DashboardLayout() {
   const { user, logout } = useAuth();
@@ -98,15 +99,21 @@ export default function DashboardLayout() {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Topbar (Mobile only) */}
-        <header className="md:hidden h-16 border-b border-neutral-700 bg-neutral-800 flex items-center px-4 shrink-0">
-          <button 
-            onClick={() => setSidebarOpen(true)}
-            className="text-neutral-400 hover:text-white"
-          >
-            <Menu className="w-6 h-6" />
-          </button>
-          <span className="ml-4 text-lg font-bold text-white">Smart Campus</span>
+        {/* Topbar */}
+        <header className="h-16 border-b border-neutral-700 bg-neutral-800 flex items-center justify-between px-4 md:px-8 shrink-0">
+          <div className="flex items-center">
+            <button 
+              onClick={() => setSidebarOpen(true)}
+              className="md:hidden text-neutral-400 hover:text-white mr-4"
+            >
+              <Menu className="w-6 h-6" />
+            </button>
+            <span className="md:hidden text-lg font-bold text-white">Smart Campus</span>
+          </div>
+          
+          <div className="flex items-center gap-4 ml-auto">
+            <NotificationBell />
+          </div>
         </header>
 
         {/* Page Content */}

@@ -11,4 +11,5 @@ public interface UserRepository extends MongoRepository<User, String> {
     Optional<User> findByEmail(String email);
     Optional<User> findByResetToken(String resetToken);
     long countByRolesContaining(String role);
+    java.util.List<User> findByRolesContaining(String role);
 }

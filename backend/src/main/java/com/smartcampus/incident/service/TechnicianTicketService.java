@@ -9,6 +9,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import com.smartcampus.notification.service.NotificationService;
+import com.smartcampus.notification.entity.NotificationType;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -22,6 +24,7 @@ public class TechnicianTicketService {
 
     private final IncidentTicketRepository repository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     private String getCurrentUser() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
@@ -70,7 +73,18 @@ public class TechnicianTicketService {
             ticket.setResolvedAt(LocalDateTime.now());
         }
 
-        return repository.save(ticket);
+        IncidentTicket savedTicket = repository.save(ticket);
+        
+        userRepository.findByRolesContaining("ROLE_ADMIN").forEach(admin -> {
+            notificationService.createAndSendNotification(
+                    admin.getEmail(),
+                    "ADMIN",
+                    "Ticket status updated to " + status.name() + " by technician",
+                    NotificationType.TICKET
+            );
+        });
+
+        return savedTicket;
     }
 
     public IncidentTicket addComment(String id, AddCommentDTO commentRequest) {
