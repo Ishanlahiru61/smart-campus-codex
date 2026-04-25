@@ -95,6 +95,8 @@ function ManageBookingModal({ booking, onClose, onStatusChange }) {
         {/* ── Details ── */}
         <div className="px-8 py-5 space-y-0">
           {[
+            ['Facility', booking.facility?.name || '—'],
+            ['Location', booking.facility?.location || '—'],
             ['Purpose', booking.purpose || '—'],
             ['Attendees', booking.attendees ?? '—'],
             ['Start Time', fmt(booking.startTime)],
@@ -265,7 +267,7 @@ export default function AdminBookings() {
     const matchSearch = !search ||
       b.id?.toLowerCase().includes(q) ||
       b.userId?.toLowerCase().includes(q) ||
-      b.resourceId?.toLowerCase().includes(q) ||
+      b.facility?.name?.toLowerCase().includes(q) ||
       b.purpose?.toLowerCase().includes(q);
     const matchStatus = !filterStatus || b.status === filterStatus;
     return matchSearch && matchStatus;
@@ -359,7 +361,7 @@ export default function AdminBookings() {
             <table className="w-full text-sm text-left">
               <thead>
                 <tr className="border-b border-slate-100">
-                  {['Booking', 'Purpose', 'Start Time', 'End Time', 'Status', 'Actions'].map(h => (
+                  {['Booking', 'Facility', 'Purpose', 'Start Time', 'End Time', 'Status', 'Actions'].map(h => (
                     <th key={h} className="px-6 py-5 text-xs font-extrabold text-slate-400 uppercase tracking-widest">
                       {h}
                     </th>
@@ -376,7 +378,35 @@ export default function AdminBookings() {
                   >
                     {/* Booking ID */}
                     <td className="px-6 py-5">
-                      <span className="text-xs font-mono font-bold text-slate-400">#{b.id?.slice(-8)}</span>
+                      <div className="flex flex-col">
+                        <span className="text-xs font-mono font-bold text-slate-400">#{b.id?.slice(-8)}</span>
+                        <span className="text-[10px] text-slate-400 font-medium">{b.userId}</span>
+                      </div>
+                    </td>
+
+                    {/* Facility */}
+                    <td className="px-6 py-5">
+                      <div className="flex items-center gap-3">
+                        {b.facility?.imageUrl ? (
+                          <img
+                            src={b.facility.imageUrl}
+                            alt=""
+                            className="w-8 h-8 rounded-lg object-cover bg-slate-100 shrink-0"
+                          />
+                        ) : (
+                          <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
+                            <Calendar className="w-4 h-4 text-slate-400" />
+                          </div>
+                        )}
+                        <div className="flex flex-col">
+                          <span className="text-sm font-bold text-slate-800 line-clamp-1">
+                            {b.facility?.name || 'Unknown Facility'}
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-medium line-clamp-1">
+                            {b.facility?.location || 'No location'}
+                          </span>
+                        </div>
+                      </div>
                     </td>
 
                     {/* Purpose */}

@@ -1,7 +1,9 @@
 package com.smartcampus.booking.entity;
 
+import com.smartcampus.facility.entity.Facility;
 import lombok.*;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
@@ -18,6 +20,9 @@ public class Booking {
 
     private String resourceId;
     private String userId;
+
+    @Transient
+    private Facility facility;
 
     private LocalDateTime startTime;
     private LocalDateTime endTime;
