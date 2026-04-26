@@ -20,6 +20,25 @@ public class CoverageReportGenerator {
     private static final String SUREFIRE_REPORTS_DIR = "target/surefire-reports";
     private static final String OUTPUT_JSON_PATH = "target/test-coverage-report.json";
 
+    private static String resolvePath(String path) {
+        // 1. Try local path directly
+        File localFile = new File(path);
+        if (localFile.exists()) return path;
+
+        // 2. Try prepending 'backend/' if we see the 'backend' folder (implies we are in root)
+        // But only if we are NOT already inside the backend directory.
+        // We check if 'pom.xml' exists locally to see if we are in a module directory.
+        boolean inModuleDir = new File("pom.xml").exists();
+        File backendDir = new File("backend");
+        
+        if (!inModuleDir && backendDir.exists() && backendDir.isDirectory()) {
+            return "backend/" + path;
+        }
+
+        // 3. Otherwise, assume we are in the 'backend' directory or equivalent
+        return path;
+    }
+
     public static void main(String[] args) {
         try {
             System.out.println("[CoverageReport] Starting report generation...");
@@ -31,7 +50,7 @@ public class CoverageReportGenerator {
             }
 
             // 1. Parse JaCoCo Report
-            File jacocoFile = new File(JACOCO_XML_PATH);
+            File jacocoFile = new File(resolvePath(JACOCO_XML_PATH));
             if (jacocoFile.exists()) {
                 parseJacocoReport(jacocoFile, modules);
             } else {
@@ -39,7 +58,7 @@ public class CoverageReportGenerator {
             }
 
             // 2. Parse Surefire Reports
-            File surefireDir = new File(SUREFIRE_REPORTS_DIR);
+            File surefireDir = new File(resolvePath(SUREFIRE_REPORTS_DIR));
             int totalTests = 0;
             int totalPassed = 0;
             int totalFailed = 0;
@@ -102,9 +121,10 @@ public class CoverageReportGenerator {
             // Write JSON
             ObjectMapper mapper = new ObjectMapper();
             mapper.enable(SerializationFeature.INDENT_OUTPUT);
-            mapper.writeValue(new File(OUTPUT_JSON_PATH), report);
+            String outPath = resolvePath(OUTPUT_JSON_PATH);
+            mapper.writeValue(new File(outPath), report);
 
-            System.out.println("[CoverageReport] JSON report generated: " + OUTPUT_JSON_PATH);
+            System.out.println("[CoverageReport] JSON report generated: " + outPath);
 
         } catch (Exception e) {
             e.printStackTrace();

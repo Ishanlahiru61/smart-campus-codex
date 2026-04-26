@@ -7,11 +7,12 @@ import com.smartcampus.booking.dto.BookingStatusUpdateDTO;
 import com.smartcampus.booking.entity.Booking;
 import com.smartcampus.booking.entity.BookingStatus;
 import com.smartcampus.booking.service.BookingService;
+import com.smartcampus.config.TestSecurityConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
@@ -26,7 +27,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(BookingController.class)
-@AutoConfigureMockMvc
+@Import(TestSecurityConfig.class)
 class BookingControllerTest {
 
     @Autowired
@@ -34,18 +35,6 @@ class BookingControllerTest {
 
     @MockBean
     private BookingService bookingService;
-
-    @MockBean
-    private com.smartcampus.auth.security.JwtUtil jwtUtil;
-
-    @MockBean
-    private com.smartcampus.auth.repository.UserRepository userRepository;
-
-    @MockBean
-    private com.smartcampus.auth.security.CustomUserDetailsService customUserDetailsService;
-
-    @MockBean
-    private com.smartcampus.service.CloudinaryService cloudinaryService;
 
     @Autowired
     private ObjectMapper objectMapper;
