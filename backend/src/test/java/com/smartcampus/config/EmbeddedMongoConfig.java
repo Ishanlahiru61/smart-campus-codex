@@ -7,6 +7,7 @@ import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.mongo.transitions.Mongod;
 import de.flapdoodle.embed.mongo.transitions.RunningMongodProcess;
 import de.flapdoodle.reverse.TransitionWalker;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
@@ -18,6 +19,7 @@ import jakarta.annotation.PreDestroy;
  * Manual Embedded MongoDB configuration for Spring Boot 3.2+
  */
 @TestConfiguration
+@ConditionalOnProperty(name = "spring.mongodb.embedded.enabled", havingValue = "true", matchIfMissing = true)
 public class EmbeddedMongoConfig {
 
     private TransitionWalker.ReachedState<RunningMongodProcess> running;

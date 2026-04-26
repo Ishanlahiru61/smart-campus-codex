@@ -38,6 +38,7 @@ jobs:
         run: mvn -f backend/pom.xml clean verify
         env:
           SPRING_DATA_MONGODB_URI: mongodb://localhost:27017/test
+          SPRING_MONGODB_EMBEDDED_ENABLED: false
           JWT_SECRET: test-secret-key-for-ci-cd-pipeline-only-32chars
           JWT_EXPIRATION: 86400000
           APP_ENCRYPTION_KEY: test-encryption-key-for-ci-16byte
