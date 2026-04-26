@@ -24,6 +24,12 @@ export const userBookingAPI = {
     const response = await api.patch(`/api/bookings/${id}/reschedule`, payload);
     return response.data.data;
   },
+  
+   // Update Booking (USER) 
+  update: async (id, data) => {
+  const response = await api.put(`/api/bookings/${id}`, data);
+  return response.data.data;
+  },
 
 };
 

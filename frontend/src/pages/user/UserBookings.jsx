@@ -9,9 +9,10 @@ import {
   XCircle,
   AlertTriangle,
   RefreshCcw,
+  Pencil,
+  MapPin,
 } from 'lucide-react';
 import { userBookingAPI } from '../../services/userApi';
-import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
 
 const STATUS_STYLE = {
@@ -28,6 +29,27 @@ const STATUS_ICONS = {
   CANCELLED: <X className="w-3.5 h-3.5" />,
 };
 
+const RESOURCE_NAMES = {
+  A301: 'A301 Lecture Hall',
+  A302: 'A302 Lecture Hall',
+  A303: 'A303 Lecture Hall',
+  B401: 'B401 Computer Lab',
+  B402: 'B402 Computer Lab',
+  AUDITORIUM: 'Main Auditorium',
+};
+
+const getResourceName = (booking) =>
+  booking?.facility?.name ||
+  booking?.resourceName ||
+  booking?.resource?.name ||
+  RESOURCE_NAMES[booking?.resourceId] ||
+  'Unknown Facility';
+
+const getResourceLocation = (booking) =>
+  booking?.facility?.location ||
+  booking?.resource?.location ||
+  'No location';
+
 const toDateInput = (dt) => (dt ? new Date(dt).toISOString().slice(0, 10) : '');
 
 const toTimeInput = (dt) => {
@@ -37,19 +59,31 @@ const toTimeInput = (dt) => {
 };
 
 export default function UserBookings() {
-  const { user } = useAuth();
   const [bookings, setBookings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [cancellingId, setCancellingId] = useState(null);
   const [reschedulingId, setReschedulingId] = useState(null);
+  const [updatingId, setUpdatingId] = useState(null);
   const [filterStatus, setFilterStatus] = useState('');
-  const [cancelModal, setCancelModal] = useState({
-    open: false,
-    booking: null,
-  });
+
+  const [cancelModal, setCancelModal] = useState({ open: false, booking: null });
+
   const [rescheduleModal, setRescheduleModal] = useState({
     open: false,
     booking: null,
+    date: '',
+    startTime: '',
+    endTime: '',
+  });
+
+  const [updateModal, setUpdateModal] = useState({
+    open: false,
+    booking: null,
+    resourceId: '',
+    resourceName: '',
+    resourceLocation: '',
+    purpose: '',
+    attendees: '',
     date: '',
     startTime: '',
     endTime: '',
@@ -59,7 +93,7 @@ export default function UserBookings() {
     try {
       setIsLoading(true);
       const data = await userBookingAPI.getMyBookings();
-      setBookings(data);
+      setBookings(Array.isArray(data) ? data : []);
     } catch {
       toast.error('Failed to load bookings');
     } finally {
@@ -72,19 +106,12 @@ export default function UserBookings() {
   }, []);
 
   const openCancelModal = (booking) => {
-    setCancelModal({
-      open: true,
-      booking,
-    });
+    setCancelModal({ open: true, booking });
   };
 
   const closeCancelModal = () => {
     if (cancellingId) return;
-
-    setCancelModal({
-      open: false,
-      booking: null,
-    });
+    setCancelModal({ open: false, booking: null });
   };
 
   const openRescheduleModal = (booking) => {
@@ -99,10 +126,40 @@ export default function UserBookings() {
 
   const closeRescheduleModal = () => {
     if (reschedulingId) return;
-
     setRescheduleModal({
       open: false,
       booking: null,
+      date: '',
+      startTime: '',
+      endTime: '',
+    });
+  };
+
+  const openUpdateModal = (booking) => {
+    setUpdateModal({
+      open: true,
+      booking,
+      resourceId: booking.resourceId || '',
+      resourceName: getResourceName(booking),
+      resourceLocation: getResourceLocation(booking),
+      purpose: booking.purpose || '',
+      attendees: booking.attendees || '',
+      date: toDateInput(booking.startTime),
+      startTime: toTimeInput(booking.startTime),
+      endTime: toTimeInput(booking.endTime),
+    });
+  };
+
+  const closeUpdateModal = () => {
+    if (updatingId) return;
+    setUpdateModal({
+      open: false,
+      booking: null,
+      resourceId: '',
+      resourceName: '',
+      resourceLocation: '',
+      purpose: '',
+      attendees: '',
       date: '',
       startTime: '',
       endTime: '',
@@ -159,29 +216,73 @@ export default function UserBookings() {
         prev.map((booking) => (booking.id === bookingId ? updated : booking))
       );
 
-      toast.success('Booking rescheduled and sent for admin approval');
-      setRescheduleModal({
-        open: false,
-        booking: null,
-        date: '',
-        startTime: '',
-        endTime: '',
-      });
+      toast.success('Booking rescheduled');
+      closeRescheduleModal();
     } catch (err) {
-  console.log('FULL ERROR:', err);
-  console.log('BACKEND RESPONSE:', err.response?.data);
+      toast.error(
+        err.response?.data?.message ||
+          err.response?.data?.error ||
+          err.response?.data?.details ||
+          err.message ||
+          'Failed to reschedule booking'
+      );
+    } finally {
+      setReschedulingId(null);
+    }
+  };
 
-  const errorMessage =
-    err.response?.data?.message ||
-    err.response?.data?.error ||
-    err.response?.data?.details ||
-    err.message ||
-    'Failed to reschedule booking';
+  const confirmUpdate = async () => {
+    const bookingId = updateModal.booking?.id;
+    if (!bookingId) return;
 
-  toast.error(errorMessage);
-} finally {
-  setReschedulingId(null);
-}
+    if (
+      !updateModal.resourceId ||
+      !updateModal.purpose ||
+      !updateModal.attendees ||
+      !updateModal.date ||
+      !updateModal.startTime ||
+      !updateModal.endTime
+    ) {
+      toast.error('Please fill all update fields');
+      return;
+    }
+
+    const startTime = `${updateModal.date}T${updateModal.startTime}:00`;
+    const endTime = `${updateModal.date}T${updateModal.endTime}:00`;
+
+    if (new Date(startTime) >= new Date(endTime)) {
+      toast.error('Start time must be before end time');
+      return;
+    }
+
+    try {
+      setUpdatingId(bookingId);
+
+      const updated = await userBookingAPI.update(bookingId, {
+        resourceId: updateModal.resourceId,
+        purpose: updateModal.purpose,
+        attendees: Number(updateModal.attendees),
+        startTime,
+        endTime,
+      });
+
+      setBookings((prev) =>
+        prev.map((booking) => (booking.id === bookingId ? updated : booking))
+      );
+
+      toast.success('Booking updated');
+      closeUpdateModal();
+    } catch (err) {
+      toast.error(
+        err.response?.data?.message ||
+          err.response?.data?.error ||
+          err.response?.data?.details ||
+          err.message ||
+          'Failed to update booking'
+      );
+    } finally {
+      setUpdatingId(null);
+    }
   };
 
   const formatDate = (dt) =>
@@ -265,9 +366,7 @@ export default function UserBookings() {
       ) : filtered.length === 0 ? (
         <div className="text-center py-24 bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-[24px] text-slate-400 border border-dashed border-slate-200">
           <Calendar className="w-16 h-16 mx-auto mb-4 opacity-10" />
-          <p className="text-xl font-extrabold text-slate-800">
-            No bookings found
-          </p>
+          <p className="text-xl font-extrabold text-slate-800">No bookings found</p>
           <p className="text-sm font-medium opacity-60 mt-2">
             Browse facilities to make your first booking.
           </p>
@@ -294,9 +393,21 @@ export default function UserBookings() {
                   </span>
                 </div>
 
-                <h3 className="text-xl font-bold text-slate-800 group-hover:text-blue-600 transition-colors">
-                  {booking.purpose}
-                </h3>
+                <div>
+                  <h3 className="text-xl font-bold text-slate-800 group-hover:text-blue-600 transition-colors">
+                    {booking.purpose}
+                  </h3>
+
+                  <p className="mt-1 text-sm font-extrabold text-slate-500 flex items-center gap-2">
+                    <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                    {getResourceName(booking)}
+                    {getResourceLocation(booking) !== 'No location' && (
+                      <span className="text-xs font-bold text-slate-400">
+                        • {getResourceLocation(booking)}
+                      </span>
+                    )}
+                  </p>
+                </div>
 
                 <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-slate-400">
                   <span className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg">
@@ -312,8 +423,7 @@ export default function UserBookings() {
 
                 {booking.rejectionReason && (
                   <p className="text-xs font-bold text-red-600 bg-red-50 px-4 py-2 rounded-xl inline-flex items-center gap-2 border border-red-100">
-                    <XCircle className="w-3.5 h-3.5" /> Reason:{' '}
-                    {booking.rejectionReason}
+                    <XCircle className="w-3.5 h-3.5" /> Reason: {booking.rejectionReason}
                   </p>
                 )}
               </div>
@@ -322,18 +432,31 @@ export default function UserBookings() {
                 <div className="shrink-0 flex flex-col sm:flex-row gap-3">
                   {booking.status === 'PENDING' && (
                     <button
-                      onClick={() => openCancelModal(booking)}
-                      disabled={cancellingId === booking.id}
-                      className="px-6 py-3 text-xs font-black tracking-widest text-red-600 bg-red-50 hover:bg-red-600 hover:text-white rounded-xl transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-2 shadow-sm uppercase"
+                      onClick={() => openUpdateModal(booking)}
+                      disabled={updatingId === booking.id}
+                      className="px-6 py-3 text-xs font-black tracking-widest text-blue-700 bg-blue-50 hover:bg-blue-700 hover:text-white rounded-xl transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-2 shadow-sm uppercase"
                     >
-                      {cancellingId === booking.id ? (
+                      {updatingId === booking.id ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
                       ) : (
-                        <X className="w-4 h-4" />
+                        <Pencil className="w-4 h-4" />
                       )}
-                      Cancel Booking
+                      Update
                     </button>
                   )}
+
+                  <button
+                    onClick={() => openCancelModal(booking)}
+                    disabled={cancellingId === booking.id}
+                    className="px-6 py-3 text-xs font-black tracking-widest text-red-600 bg-red-50 hover:bg-red-600 hover:text-white rounded-xl transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-2 shadow-sm uppercase"
+                  >
+                    {cancellingId === booking.id ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <X className="w-4 h-4" />
+                    )}
+                    Cancel
+                  </button>
 
                   <button
                     onClick={() => openRescheduleModal(booking)}
@@ -345,7 +468,7 @@ export default function UserBookings() {
                     ) : (
                       <RefreshCcw className="w-4 h-4" />
                     )}
-                    Reschedule Booking
+                    Reschedule
                   </button>
                 </div>
               )}
@@ -355,6 +478,179 @@ export default function UserBookings() {
       )}
 
       <AnimatePresence>
+        {updateModal.open && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 backdrop-blur-sm px-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={closeUpdateModal}
+          >
+            <motion.div
+              className="w-full max-w-lg rounded-[28px] bg-white p-7 shadow-[0_24px_80px_rgba(15,23,42,0.25)]"
+              initial={{ opacity: 0, scale: 0.94, y: 18 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.94, y: 18 }}
+              transition={{ duration: 0.18 }}
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="flex items-start gap-4">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-700">
+                  <Pencil className="h-6 w-6" />
+                </div>
+
+                <div className="flex-1">
+                  <h2 className="text-xl font-extrabold text-slate-900">
+                    Update booking
+                  </h2>
+
+                  <p className="mt-2 text-sm font-medium leading-6 text-slate-500">
+                    Update is available only for pending bookings.
+                  </p>
+
+                  <div className="mt-5 grid gap-4">
+                    <div>
+                      <label className="mb-2 block text-xs font-black uppercase tracking-widest text-slate-500">
+                        Facility
+                      </label>
+
+                      <div className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                        <p className="text-sm font-extrabold text-slate-800">
+                          {updateModal.resourceName}
+                        </p>
+                        <p className="mt-1 text-xs font-bold text-slate-400">
+                          {updateModal.resourceLocation}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="mb-2 block text-xs font-black uppercase tracking-widest text-slate-500">
+                        Purpose
+                      </label>
+                      <textarea
+                        rows="2"
+                        value={updateModal.purpose}
+                        onChange={(event) =>
+                          setUpdateModal((prev) => ({
+                            ...prev,
+                            purpose: event.target.value,
+                          }))
+                        }
+                        className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="mb-2 block text-xs font-black uppercase tracking-widest text-slate-500">
+                        Attendees
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={updateModal.attendees}
+                        onChange={(event) =>
+                          setUpdateModal((prev) => ({
+                            ...prev,
+                            attendees: event.target.value,
+                          }))
+                        }
+                        className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="mb-2 block text-xs font-black uppercase tracking-widest text-slate-500">
+                        Date
+                      </label>
+                      <input
+                        type="date"
+                        value={updateModal.date}
+                        onChange={(event) =>
+                          setUpdateModal((prev) => ({
+                            ...prev,
+                            date: event.target.value,
+                          }))
+                        }
+                        className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="mb-2 block text-xs font-black uppercase tracking-widest text-slate-500">
+                          Start Time
+                        </label>
+                        <input
+                          type="time"
+                          step="1800"
+                          value={updateModal.startTime}
+                          onChange={(event) =>
+                            setUpdateModal((prev) => ({
+                              ...prev,
+                              startTime: event.target.value,
+                            }))
+                          }
+                          className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="mb-2 block text-xs font-black uppercase tracking-widest text-slate-500">
+                          End Time
+                        </label>
+                        <input
+                          type="time"
+                          step="1800"
+                          value={updateModal.endTime}
+                          onChange={(event) =>
+                            setUpdateModal((prev) => ({
+                              ...prev,
+                              endTime: event.target.value,
+                            }))
+                          }
+                          className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  onClick={closeUpdateModal}
+                  disabled={!!updatingId}
+                  className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="mt-7 flex justify-end gap-3">
+                <button
+                  onClick={closeUpdateModal}
+                  disabled={!!updatingId}
+                  className="rounded-xl bg-slate-100 px-5 py-3 text-xs font-black uppercase tracking-widest text-slate-600 transition hover:bg-slate-200 disabled:opacity-50"
+                >
+                  Close
+                </button>
+
+                <button
+                  onClick={confirmUpdate}
+                  disabled={!!updatingId}
+                  className="inline-flex items-center gap-2 rounded-xl bg-blue-700 px-5 py-3 text-xs font-black uppercase tracking-widest text-white shadow-lg shadow-blue-700/20 transition hover:bg-blue-800 disabled:opacity-60"
+                >
+                  {updatingId ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Pencil className="h-4 w-4" />
+                  )}
+                  Save Update
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+
         {rescheduleModal.open && (
           <motion.div
             className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 backdrop-blur-sm px-4"
@@ -382,31 +678,25 @@ export default function UserBookings() {
                   </h2>
 
                   <p className="mt-2 text-sm font-medium leading-6 text-slate-500">
-                    Select a new date and time range. Approved bookings will be moved back to pending for admin approval.
+                    Select a new date and time range.
                   </p>
 
-                  {rescheduleModal.booking && (
-                    <div className="mt-4 rounded-2xl bg-slate-50 p-4">
-                      <p className="text-sm font-extrabold text-slate-800">
-                        {rescheduleModal.booking.purpose}
-                      </p>
+                  <div className="mt-5 grid gap-4">
+                    <div>
+                      <label className="mb-2 block text-xs font-black uppercase tracking-widest text-slate-500">
+                        Facility
+                      </label>
 
-                      <div className="mt-3 flex flex-wrap gap-2 text-xs font-bold text-slate-500">
-                        <span className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg">
-                          <Calendar className="w-3.5 h-3.5" />
-                          {formatDate(rescheduleModal.booking.startTime)}
-                        </span>
-
-                        <span className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg">
-                          <Clock className="w-3.5 h-3.5" />
-                          {formatTime(rescheduleModal.booking.startTime)} →{' '}
-                          {formatTime(rescheduleModal.booking.endTime)}
-                        </span>
+                      <div className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                        <p className="text-sm font-extrabold text-slate-800">
+                          {getResourceName(rescheduleModal.booking)}
+                        </p>
+                        <p className="mt-1 text-xs font-bold text-slate-400">
+                          {getResourceLocation(rescheduleModal.booking)}
+                        </p>
                       </div>
                     </div>
-                  )}
 
-                  <div className="mt-5 grid gap-4">
                     <div>
                       <label className="mb-2 block text-xs font-black uppercase tracking-widest text-slate-500">
                         New Date
@@ -532,7 +822,11 @@ export default function UserBookings() {
                   {cancelModal.booking && (
                     <div className="mt-4 rounded-2xl bg-slate-50 p-4">
                       <p className="text-sm font-extrabold text-slate-800">
-                        {cancelModal.booking.purpose}
+                        {cancelModal.booking.purpose || 'Untitled booking'}
+                      </p>
+
+                      <p className="mt-1 text-xs font-bold text-slate-400">
+                        {getResourceName(cancelModal.booking)}
                       </p>
 
                       <div className="mt-3 flex flex-wrap gap-2 text-xs font-bold text-slate-500">
