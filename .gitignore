@@ -40,5 +40,4 @@ Thumbs.db
 *.launch
 .vscode/
 target/
-resources/
 backend/src/main/resources/application.properties

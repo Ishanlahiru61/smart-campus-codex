@@ -106,6 +106,13 @@ class BookingServiceTest {
     }
 
     @Test
+    void createBooking_FacilityInactive_ThrowsException() {
+        activeFacility.setStatus(Facility.FacilityStatus.OUT_OF_SERVICE);
+        when(facilityRepository.findById("fac1")).thenReturn(Optional.of(activeFacility));
+        assertThrows(InvalidBookingException.class, () -> bookingService.createBooking(validRequest));
+    }
+
+    @Test
     void approveBooking_Success() {
         Booking pendingBooking = Booking.builder()
                 .id("b1")
@@ -123,5 +130,71 @@ class BookingServiceTest {
         Booking result = bookingService.approveBooking("b1");
 
         assertEquals(BookingStatus.APPROVED, result.getStatus());
+    }
+
+    @Test
+    void rejectBooking_Success() {
+        Booking pendingBooking = Booking.builder()
+                .id("b1")
+                .userId("user1")
+                .status(BookingStatus.PENDING)
+                .build();
+        
+        when(bookingRepository.findById("b1")).thenReturn(Optional.of(pendingBooking));
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getName()).thenReturn("user1");
+        when(authentication.getAuthorities()).thenReturn(Collections.emptyList());
+        when(bookingRepository.save(any(Booking.class))).thenAnswer(i -> i.getArguments()[0]);
+
+        BookingStatusUpdateDTO updateDto = new BookingStatusUpdateDTO();
+        updateDto.setReason("Not available");
+
+        Booking result = bookingService.rejectBooking("b1", updateDto);
+
+        assertEquals(BookingStatus.REJECTED, result.getStatus());
+        assertEquals("Not available", result.getRejectionReason());
+    }
+
+    @Test
+    void cancelBooking_Success() {
+        Booking approvedBooking = Booking.builder()
+                .id("b1")
+                .userId("user1")
+                .status(BookingStatus.APPROVED)
+                .build();
+        
+        when(bookingRepository.findById("b1")).thenReturn(Optional.of(approvedBooking));
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getName()).thenReturn("user1");
+        when(authentication.getAuthorities()).thenReturn(Collections.emptyList());
+        when(bookingRepository.save(any(Booking.class))).thenAnswer(i -> i.getArguments()[0]);
+
+        Booking result = bookingService.cancelBooking("b1");
+
+        assertEquals(BookingStatus.CANCELLED, result.getStatus());
+    }
+
+    @Test
+    void getAllBookings_Success() {
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getAuthorities()).thenReturn((java.util.Collection) java.util.Collections.singletonList(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_ADMIN")));
+        when(bookingRepository.findAll()).thenReturn(java.util.Arrays.asList(new Booking(), new Booking()));
+        List<Booking> result = bookingService.getAllBookings();
+        assertEquals(2, result.size());
+    }
+
+    @Test
+    void getBookingsByUserId_Success() {
+        when(bookingRepository.findByUserId("user1")).thenReturn(Collections.emptyList());
+        var result = bookingService.getBookingsByUserId("user1");
+        assertNotNull(result);
+    }
+
+    @Test
+    void deleteBooking_Success() {
+        when(bookingRepository.existsById("b1")).thenReturn(true);
+        doNothing().when(bookingRepository).deleteById("b1");
+        bookingService.deleteBooking("b1");
+        verify(bookingRepository).deleteById("b1");
     }
 }
