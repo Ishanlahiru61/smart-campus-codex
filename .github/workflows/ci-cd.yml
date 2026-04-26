@@ -7,9 +7,7 @@ on:
     branches: [ main, master, develop ]
 
 jobs:
-  # ─────────────────────────────────────────────────────────────
-  # JOB 1: Backend – Build, Unit Tests, Integration Tests, Coverage
-  # ─────────────────────────────────────────────────────────────
+
   backend:
     name: Backend – Build & Test
     runs-on: ubuntu-latest
