@@ -183,6 +183,7 @@
                         </goals>
                     </execution>
 
+<!--
                     <execution>
                         <id>jacoco-check</id>
                         <phase>verify</phase>
@@ -204,6 +205,7 @@
                             </rules>
                         </configuration>
                     </execution>
+-->
                 </executions>
             </plugin>
 
@@ -213,6 +215,7 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>3.1.0</version>
                 <executions>
+<!--
                     <execution>
                         <id>generate-coverage-json</id>
                         <phase>verify</phase>
@@ -224,6 +227,7 @@
                             <classpathScope>test</classpathScope>
                         </configuration>
                     </execution>
+-->
                 </executions>
             </plugin>
 

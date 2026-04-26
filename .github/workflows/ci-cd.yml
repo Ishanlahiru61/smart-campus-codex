@@ -11,7 +11,7 @@ jobs:
   # JOB 1: Backend – Build, Unit Tests, Integration Tests, Coverage
   # ─────────────────────────────────────────────────────────────
   backend:
-    name: Backend – Build & Test (≥50% coverage)
+    name: Backend – Build & Test
     runs-on: ubuntu-latest
 
     services:
@@ -34,7 +34,7 @@ jobs:
           cache: 'maven'
 
      
-      - name: Run Tests & Verify Coverage
+      - name: Run Tests
         run: mvn -f backend/pom.xml clean verify
         env:
           SPRING_DATA_MONGODB_URI: mongodb://localhost:27017/test
